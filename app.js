@@ -400,18 +400,17 @@ function cancelAddAnnotation(){
 function removeEditAnnotation(id){
     backupNow();
     var div=document.getElementById("editBodyWrap");
-    // 直接从DOM移除span
     var span=div.querySelector('.doc-anno[data-id="'+id+'"]');
     if(span){
         var textNode=document.createTextNode(span.textContent);
         span.parentNode.replaceChild(textNode,span);
     }
-    // 更新数组
     editAnnotationsArr=editAnnotationsArr.filter(function(a){return a.id!==id});
-    // 重新计算位置
     recalcAnnotationPositions();
-    // 更新editBodyText
+    // 规范化newlines
+    div.innerHTML=div.innerHTML.replace(/<br\s*\/?>/gi,"\n");
     editBodyText=div.textContent;
+    renderEditBodyWithAnnotations(editBodyText,editAnnotationsArr);
     renderEditAnnoList();
 }
 
@@ -492,6 +491,7 @@ async function saveDoc(){
     var mode=document.getElementById("docMode").value;
     var title=document.getElementById("editTitle").value.trim();
     var bodyDiv=document.getElementById("editBodyWrap");
+    // 获取innerHTML并转换br为换行
     var body=bodyDiv.innerHTML.replace(/<br\s*\/?>/gi,"\n");
     if(!title){alert("请输入标题");return}
     stopEditBackup();
