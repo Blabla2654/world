@@ -366,15 +366,13 @@ function syncAnnoSelection(){
     var selRect=range.getBoundingClientRect();
     var btn=document.getElementById("annoFloatBtn");
     var modal=document.getElementById("editModal");
-    var modalRect=modal.getBoundingClientRect();
-    var btnH=36,btnW=110;
-    var top=selRect.bottom;
-    var left=selRect.left;
-    if(top+btnH>modalRect.bottom)top=selRect.top-btnH;
-    if(left+btnW>modalRect.right)left=modalRect.right-btnW-5;
-    if(left<modalRect.left)left=modalRect.left;
-    btn.style.top=(top-modalRect.top+modal.scrollTop)+"px";
-    btn.style.left=(left-modalRect.left+modal.scrollLeft)+"px";
+    var btnH=40,btnW=110;
+    var top=selRect.bottom+window.scrollY;
+    var left=selRect.left+window.scrollX;
+    if(top+btnH>window.scrollY+window.innerHeight)top=selRect.top+window.scrollY-btnH;
+    if(left+btnW>window.scrollX+window.innerWidth)left=window.scrollX+window.innerWidth-btnW-10;
+    btn.style.top=top+"px";
+    btn.style.left=left+"px";
     btn.style.display="block";
 }
 
