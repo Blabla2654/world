@@ -363,17 +363,24 @@ function syncAnnoSelection(){
     pre.setEnd(range.startContainer,range.startOffset);
     var preText=pre.toString();
     pendingSelection={text:text,start:preText.length,end:preText.length+text.length};
-    document.getElementById("editSelectedText").textContent="'"+text+"'";
-    document.getElementById("editAnnoPanel").style.display="block";
-    document.getElementById("editAnnoNote").value="";
-    document.getElementById("editAnnoNote").focus();
+    var selRect=range.getBoundingClientRect();
+    var btn=document.getElementById("annoFloatBtn");
+    var container=document.getElementById("annoBtnContainer");
+    btn.style.display="flex";
+    var btnRect=btn.getBoundingClientRect();
+    var top=selRect.bottom+window.scrollY+5;
+    var left=selRect.left+window.scrollX;
+    if(top+btnRect.height>window.innerHeight+window.scrollY)top=selRect.top+window.scrollY-btnRect.height-5;
+    if(left+btnRect.width>window.innerWidth)left=window.innerWidth-btnRect.width-10;
+    btn.style.top=top+"px";
+    btn.style.left=left+"px";
 }
 
 function confirmAddAnnotation(){
-    if(!pendingSelection){alert("请先在正文中选中要标注的文字");return}
-    var note=document.getElementById("editAnnoNote").value.trim();
-    if(!note){alert("请输入备注内容");return}
-    editAnnotationsArr.push({id:"anno_"+Date.now(),text:pendingSelection.text,start:pendingSelection.start,end:pendingSelection.end,note:note});
+    if(!pendingSelection){return}
+    var note=prompt("输入备注内容：");
+    if(!note||!note.trim()){cancelAddAnnotation();return}
+    editAnnotationsArr.push({id:"anno_"+Date.now(),text:pendingSelection.text,start:pendingSelection.start,end:pendingSelection.end,note:note.trim()});
     window.getSelection().removeAllRanges();
     cancelAddAnnotation();
     renderEditBodyWithAnnotations(getEditBody(),editAnnotationsArr);
@@ -382,7 +389,7 @@ function confirmAddAnnotation(){
 
 function cancelAddAnnotation(){
     pendingSelection=null;
-    document.getElementById("editAnnoPanel").style.display="none";
+    document.getElementById("annoFloatBtn").style.display="none";
     window.getSelection().removeAllRanges();
 }
 

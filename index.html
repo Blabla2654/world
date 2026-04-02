@@ -97,16 +97,10 @@
 <span id="imgUploadStatus" style="color:var(--text-dim);font-size:0.8em"></span>
 </div>
 </div>
-<div class="form-group" id="editAnnoPanel" style="display:none">
-<label>📌 为选中文字添加标注</label>
-<div style="padding:10px 14px;background:rgba(200,146,42,0.08);border:1px solid rgba(200,146,42,0.2);border-radius:8px;margin-bottom:10px">
-<div style="color:#ffc832;font-size:0.85em;margin-bottom:6px">选中的文字：</div>
-<div id="editSelectedText" style="color:var(--text);font-size:0.95em;padding:4px 0"></div>
-</div>
-<div style="display:flex;gap:8px">
-<input type="text" id="editAnnoNote" placeholder="输入备注内容..." style="flex:1">
-<button class="btn btn-primary" style="padding:10px 20px" onclick="confirmAddAnnotation()">确认添加</button>
-<button class="btn btn-ghost" style="padding:10px 16px;color:var(--text-dim)" onclick="cancelAddAnnotation()">取消</button>
+<div class="form-group" id="annoBtnContainer" style="display:none;position:relative">
+<div id="annoFloatBtn" style="position:absolute;z-index:50;background:var(--paper);border:1px solid var(--gold);border-radius:6px;padding:6px 12px;box-shadow:0 4px 12px rgba(0,0,0,0.2);display:flex;gap:6px;align-items:center">
+<button class="btn btn-ghost" style="padding:4px 10px;font-size:0.8em" onclick="confirmAddAnnotation()">📌 添加标注</button>
+<button class="btn btn-ghost" style="padding:4px 8px;font-size:0.8em;color:var(--text-dim)" onclick="cancelAddAnnotation()">×</button>
 </div>
 </div>
 <div class="form-group">
