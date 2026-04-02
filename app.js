@@ -193,7 +193,7 @@ function closeAnnoPopup(){document.getElementById("annoPopup").classList.remove(
 
 // ── 弹窗控制 ─────────────────────────────────────
 function openModal(id){var el=document.getElementById(id);if(el)el.classList.add("open")}
-function closeModal(id){var el=document.getElementById(id);if(el){el.classList.remove("open");if(id==="editModal")stopEditBackup()}}
+function closeModal(id){var el=document.getElementById(id);if(el){el.classList.remove("open");if(id==="viewModal")closeAnnoPopup();if(id==="editModal")stopEditBackup()}}
 
 // ── 编辑：标签 ──────────────────────────────────
 function buildTagOptions(){
