@@ -497,8 +497,8 @@ async function deleteDoc(){
     if(!confirm("确定删除这篇文档？"))return;
     stopEditBackup();
     var uid=document.getElementById("editUid").value;
+    await fetch("/api/docs/"+uid,{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({})});
     docs=docs.filter(function(x){return x.uid!==uid});
-    await saveDocs();
     closeModal("editModal");
     currentViewUid=null;
     buildTagOptions();
