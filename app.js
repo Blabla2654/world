@@ -367,16 +367,23 @@ function syncAnnoSelection(){
         cancelAddAnnotation();
         return;
     }
-    pendingSelection={text:text,start:0,end:text.length};
+    // 计算选中文本在纯文本中的位置
+    var pre=document.createRange();
+    pre.selectNodeContents(div);
+    pre.setEnd(range.startContainer,range.startOffset);
+    var preText=pre.toString();
+    pendingSelection={text:text,start:preText.length,end:preText.length+text.length};
+    // 按钮显示在选中区域下方
     var selRect=range.getBoundingClientRect();
     var btn=document.getElementById("annoFloatBtn");
-    var btnH=40,btnW=110;
-    var top=selRect.bottom+window.scrollY;
-    var left=selRect.left+window.scrollX;
-    if(top+btnH>window.scrollY+window.innerHeight)top=selRect.top+window.scrollY-btnH;
-    if(left+btnW>window.scrollX+window.innerWidth)left=window.scrollX+window.innerWidth-btnW-10;
-    btn.style.top=top+"px";
-    btn.style.left=left+"px";
+    var btnH=36,btnW=110;
+    var top=selRect.bottom+8;
+    var left=selRect.left;
+    if(top+btnH>window.innerHeight)top=selRect.top-btnH-8;
+    if(left+btnW>window.innerWidth)left=window.innerWidth-btnW-10;
+    if(left<10)left=10;
+    btn.style.top=top+window.scrollY+"px";
+    btn.style.left=left+window.scrollX+"px";
     btn.style.display="block";
 }
 
@@ -561,6 +568,12 @@ document.addEventListener("click",function(e){
         if(uid)viewDoc(uid);
     }
 });
+
+document.addEventListener("scroll",function(){
+    if(document.getElementById("editModal").classList.contains("open")){
+        cancelAddAnnotation();
+    }
+},{passive:true});
 
 document.getElementById("editTagParentSelect").addEventListener("change",updateChildOptions);
 document.getElementById("newSecondaryParent").addEventListener("change",updateChildOptions);
