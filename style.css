@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400%3B600%3B700&family=ZCOOL+XiaoWei&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f4efe4;--paper:#faf7f0;--ink:#2a1810;--ink-light:#5c3d2e;--gold:#c8922a;--gold-light:#e8c46a;--red:#8b2323;--border:#d4c4a8;--text:#3d2914;--text-dim:#8b7355;--tag-bg:#ede5d0;--shadow:rgba(60,30,10,0.15)}
+body{font-family:"Noto Serif SC",serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.8}
+header{background:linear-gradient(to bottom,#2a1810,#3d2914);border-bottom:3px solid var(--gold);padding:0;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px var(--shadow)}
+.header-inner{max-width:1100px;margin:0 auto;padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-family:"ZCOOL XiaoWei",serif;font-size:1.6em;color:var(--gold-light);letter-spacing:4px}
+.btn{padding:8px 22px;border:none;border-radius:4px;cursor:pointer;font-size:0.88em;font-family:inherit;transition:all .2s;letter-spacing:1px}
+.btn-primary{background:linear-gradient(135deg,var(--red),#a83232);color:var(--gold-light);border:1px solid var(--gold);box-shadow:0 2px 8px rgba(139,35,35,0.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(139,35,35,0.4)}
+.btn-ghost{background:transparent;border:1px solid var(--gold);color:var(--gold-light)}
+.btn-ghost:hover{background:rgba(200,146,42,0.15)}
+.container{max-width:1100px;margin:0 auto;padding:30px 24px}
+.stats{display:flex;justify-content:center;gap:60px;margin-bottom:28px;padding:18px 40px;background:var(--paper);border:1px solid var(--border);border-radius:8px;box-shadow:inset 0 0 20px rgba(180,140,80,0.08)}
+.stat-item{text-align:center}
+.stat-num{font-family:"ZCOOL XiaoWei",serif;font-size:2em;color:var(--red);line-height:1.2}
+.stat-label{font-size:0.78em;color:var(--text-dim);letter-spacing:2px}
+.tag-section{margin-bottom:25px;background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:16px 20px;box-shadow:0 2px 10px var(--shadow)}
+.tag-section-label{font-size:0.72em;color:var(--gold);letter-spacing:3px;margin-bottom:10px;padding-left:8px;border-left:3px solid var(--gold)}
+.tag-row{display:flex;gap:8px;flex-wrap:wrap;padding:8px 0}
+.tag-primary{padding:5px 16px;background:var(--tag-bg);border:1px solid var(--border);border-radius:4px;font-size:0.85em;cursor:pointer;transition:all .2s;color:var(--ink-light)}
+.tag-primary:hover{background:var(--gold-light);border-color:var(--gold);color:var(--ink)}
+.tag-primary.active{background:linear-gradient(135deg,var(--gold-light),var(--gold));border-color:var(--gold);color:var(--ink);font-weight:600}
+.tag-secondary{padding:3px 12px;background:transparent;border:1px solid transparent;border-radius:4px;font-size:0.8em;cursor:pointer;color:var(--text-dim);transition:all .2s}
+.tag-secondary:hover{color:var(--red)}
+.tag-secondary.active{background:rgba(139,35,35,0.08);border-color:rgba(139,35,35,0.3);color:var(--red)}
+.search-box{margin-bottom:28px}
+.search-box input{width:100%;padding:14px 20px;background:var(--paper);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95em;font-family:inherit;outline:none;transition:all .2s}
+.search-box input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,146,42,0.15)}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+.doc-card{background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:22px 24px;cursor:pointer;transition:all .25s;box-shadow:0 2px 8px var(--shadow);position:relative;overflow:hidden}
+.doc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red),var(--gold),var(--red));opacity:0;transition:opacity .25s}
+.doc-card:hover{transform:translateY(-3px);border-color:var(--gold);box-shadow:0 8px 24px var(--shadow)}
+.doc-card:hover::before{opacity:1}
+.doc-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:10px}
+.doc-title{font-family:"ZCOOL XiaoWei",serif;font-size:1.15em;color:var(--ink);line-height:1.4}
+.doc-uid{font-size:0.7em;color:var(--text-dim);font-family:monospace;background:var(--tag-bg);padding:2px 8px;border-radius:3px;border:1px solid var(--border);white-space:nowrap;flex-shrink:0}
+.doc-excerpt{color:var(--text-dim);font-size:0.88em;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.7}
+.doc-tags{display:flex;gap:6px;flex-wrap:wrap}
+.doc-tag{display:inline-flex;align-items:center;padding:2px 10px;background:rgba(139,35,35,0.06);border:1px solid rgba(139,35,35,0.2);border-radius:4px;font-size:0.75em;color:var(--red)}
+.doc-tag .sep{color:var(--text-dim);margin:0 1px}
+.doc-meta{margin-top:14px;font-size:0.75em;color:var(--text-dim);display:flex;justify-content:space-between;padding-top:10px;border-top:1px dashed var(--border)}
+.doc-anno{background:rgba(200,146,42,0.2);border-bottom:2px solid rgba(200,146,42,0.6);color:#7a1010;cursor:pointer;padding:1px 4px;border-radius:3px;font-weight:600}
+.doc-anno:hover{background:rgba(200,146,42,0.35)}
+.doc-anno.anno-active{background:rgba(139,35,35,0.3);border-color:rgba(139,35,35,0.8);color:var(--red);outline:2px solid rgba(139,35,35,0.5)}
+.anno-popup{position:fixed;background:#faf5e8;border:2px solid var(--gold);border-radius:8px;padding:16px 20px;max-width:420px;min-width:280px;box-shadow:0 8px 30px rgba(60,30,10,0.25);z-index:300;display:none}
+.anno-popup.open{display:block!important}
+.anno-popup-title{color:var(--gold);font-weight:600;margin-bottom:8px;font-size:0.95em;border-bottom:1px solid var(--border);padding-bottom:6px}
+.anno-popup-body{color:var(--ink);font-size:0.88em;line-height:1.8}
+.anno-popup-close{position:absolute;top:8px;right:12px;background:none;border:none;color:var(--text-dim);font-size:1.1em;cursor:pointer}
+.anno-popup-close:hover{color:var(--ink)}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(30,15,5,0.75);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--paper);border:2px solid var(--gold);border-radius:12px;width:100%;max-width:760px;max-height:90vh;overflow-y:auto;padding:32px 36px;box-shadow:0 20px 60px rgba(30,15,5,0.4)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:14px;border-bottom:2px solid var(--border)}
+.modal-title{font-family:"ZCOOL XiaoWei",serif;font-size:1.4em;color:var(--ink);letter-spacing:3px}
+.modal-close{background:none;border:none;color:var(--text-dim);font-size:1.5em;cursor:pointer;padding:4px 8px}
+.modal-close:hover{color:var(--ink)}
+.modal-body{color:var(--ink-light);line-height:2;white-space:pre-wrap;font-size:0.95em}
+.modal-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.empty{text-align:center;padding:80px 20px;color:var(--text-dim)}
+.empty-icon{font-size:3em;margin-bottom:15px}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;margin-bottom:8px;font-size:0.85em;color:var(--ink-light);letter-spacing:1px;border-left:3px solid var(--gold);padding-left:8px}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:12px 16px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.95em;font-family:inherit;outline:none;transition:all .2s}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,146,42,0.12)}
+.form-group textarea{min-height:200px;resize:vertical}
+.tag-selector{display:flex;gap:8px}
+.tag-selector select{flex:1}
+.tag-add-btn{padding:10px 18px;background:var(--tag-bg);border:1px solid var(--border);border-radius:6px;color:var(--ink);cursor:pointer;font-size:0.88em;font-family:inherit;white-space:nowrap;transition:all .2s}
+.tag-add-btn:hover{background:var(--gold-light);border-color:var(--gold)}
+.selected-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.selected-tag{display:inline-flex;align-items:center;padding:4px 12px;background:rgba(200,146,42,0.1);border:1px solid rgba(200,146,42,0.4);border-radius:4px;font-size:0.82em;color:#7a4a10;cursor:pointer}
+.selected-tag:hover{background:rgba(200,146,42,0.2)}
