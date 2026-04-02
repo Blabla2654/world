@@ -488,13 +488,13 @@ async function saveDoc(){
     var mode=document.getElementById("docMode").value;
     var title=document.getElementById("editTitle").value.trim();
     var bodyDiv=document.getElementById("editBodyWrap");
-    var body=bodyDiv.innerHTML;
+    var body=bodyDiv.innerHTML.replace(/<br\s*\/?>/gi,"\n");
     if(!title){alert("请输入标题");return}
     stopEditBackup();
     // 重新计算标注位置
     recalcAnnotationPositions();
     if(mode==="new"){
-        var doc={uid:generateUID(),title:title,body:body||"<br>",tags:editTagPairs.slice(),annotations:editAnnotationsArr.slice(),created:new Date().toISOString().split("T")[0]};
+        var doc={uid:generateUID(),title:title,body:body||"\n",tags:editTagPairs.slice(),annotations:editAnnotationsArr.slice(),created:new Date().toISOString().split("T")[0]};
         docs.unshift(doc);
     }else{
         var uid=document.getElementById("editUid").value;
