@@ -365,18 +365,17 @@ function syncAnnoSelection(){
     pendingSelection={text:text,start:preText.length,end:preText.length+text.length};
     var selRect=range.getBoundingClientRect();
     var btn=document.getElementById("annoFloatBtn");
-    btn.style.display="flex";
-    var btnH=40,btnW=150;
-    var bodyWrap=document.getElementById("editBodyWrap");
-    var bodyRect=bodyWrap.getBoundingClientRect();
-    var relTop=selRect.top-bodyRect.top+bodyWrap.scrollTop;
-    var relLeft=selRect.left-bodyRect.left+bodyWrap.scrollLeft;
-    if(relTop+selRect.height+btnH+8>bodyWrap.clientHeight)relTop=relTop-btnH-2;
-    else relTop=relTop+selRect.height+8;
-    if(relLeft+btnW>bodyWrap.clientWidth)relLeft=bodyWrap.clientWidth-btnW-10;
-    if(relLeft<0)relLeft=10;
-    btn.style.top=relTop+"px";
-    btn.style.left=relLeft+"px";
+    var modal=document.getElementById("editModal");
+    var modalRect=modal.getBoundingClientRect();
+    var btnH=36,btnW=110;
+    var top=selRect.bottom;
+    var left=selRect.left;
+    if(top+btnH>modalRect.bottom)top=selRect.top-btnH;
+    if(left+btnW>modalRect.right)left=modalRect.right-btnW-5;
+    if(left<modalRect.left)left=modalRect.left;
+    btn.style.top=(top-modalRect.top+modal.scrollTop)+"px";
+    btn.style.left=(left-modalRect.left+modal.scrollLeft)+"px";
+    btn.style.display="block";
 }
 
 function confirmAddAnnotation(){
@@ -529,6 +528,12 @@ document.addEventListener("click",function(e){
     if(card){
         var uid=card.getAttribute("data-uid");
         if(uid)viewDoc(uid);
+    }
+});
+
+document.addEventListener("selectionchange",function(){
+    if(document.getElementById("editModal").classList.contains("open")){
+        setTimeout(syncAnnoSelection,10);
     }
 });
 
