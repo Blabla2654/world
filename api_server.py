@@ -13,6 +13,8 @@ app = Flask(__name__)
 DOCS_DIR = "/var/www/html/world/documents"
 TAGS_FILE = "/var/www/html/world/tags.json"
 LOCK_FILE = "/var/www/html/world/.lockfile"
+UPLOAD_DIR = "/var/www/html/world/assets/images"
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp", "bmp"}
 
 # ── 内存缓存 ─────────────────────────────────────
 _cache = {"tags": None, "docs": None}
@@ -159,6 +161,26 @@ def delete_doc(uid):
         deleted = before - len(_cache["docs"])
         delete_doc_cache(uid)
     return jsonify({"ok": True, "deleted": deleted})
+
+@app.route("/api/upload", methods=["POST"])
+def upload_image():
+    """上传图片，返回 URL 路径"""
+    if "file" not in request.files:
+        return jsonify({"error": "没有文件"}), 400
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "文件名为空"}), 400
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    if ext not in ALLOWED_EXTENSIONS:
+        return jsonify({"error": f"不支持的图片格式: {ext}"}), 400
+    if not os.path.isdir(UPLOAD_DIR):
+        os.makedirs(UPLOAD_DIR)
+    import uuid
+    filename = f"{uuid.uuid4().hex}.{ext}"
+    fpath = os.path.join(UPLOAD_DIR, filename)
+    file.save(fpath)
+    url = f"/assets/images/{filename}"
+    return jsonify({"url": url, "filename": filename})
 
 # ── 启动 ──────────────────────────────────────────
 if __name__ == "__main__":
