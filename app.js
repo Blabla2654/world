@@ -184,8 +184,15 @@ function showAnnoPopup(annoId,event){
     var pop=document.getElementById("annoPopup");
     pop.classList.add("open");
     var rect=event.target.getBoundingClientRect();
-    pop.style.top=(rect.bottom+window.scrollY+8)+"px";
-    pop.style.left=Math.max(10,rect.left+window.scrollX-30)+"px";
+    var vw=window.innerWidth,vh=window.innerHeight;
+    var pw=pop.offsetWidth||320,ph=pop.offsetHeight||150;
+    var top=rect.bottom+8;
+    var left=rect.left-30;
+    if(top+ph>vh)top=rect.top-ph-8;
+    if(left+pw>vw)left=vw-pw-10;
+    if(left<10)left=10;
+    pop.style.top=top+"px";
+    pop.style.left=left+"px";
     event.stopPropagation();
 }
 
