@@ -281,7 +281,7 @@ function restoreEditMemory(){
     editAnnotationsArr=editMemory.annotations.slice();
 }
 
-function getEditBody(){return editBodyText||document.getElementById("editBodyWrap").innerHTML||""}
+function getEditBody(){return editBodyText||document.getElementById("editBodyWrap").textContent||""}
 
 function startEditBackup(){stopEditBackup();editBackupTimer=setInterval(syncEditMemory,2000)}
 function stopEditBackup(){if(editBackupTimer){clearInterval(editBackupTimer);editBackupTimer=null}}
@@ -395,8 +395,19 @@ function cancelAddAnnotation(){
 
 function removeEditAnnotation(id){
     backupNow();
+    var div=document.getElementById("editBodyWrap");
+    // 直接从DOM移除span
+    var span=div.querySelector('.doc-anno[data-id="'+id+'"]');
+    if(span){
+        var textNode=document.createTextNode(span.textContent);
+        span.parentNode.replaceChild(textNode,span);
+    }
+    // 更新数组
     editAnnotationsArr=editAnnotationsArr.filter(function(a){return a.id!==id});
-    renderEditBodyWithAnnotations(getEditBody(),editAnnotationsArr);
+    // 重新计算位置
+    recalcAnnotationPositions();
+    // 更新editBodyText
+    editBodyText=div.textContent;
     renderEditAnnoList();
 }
 
