@@ -367,11 +367,7 @@ function syncAnnoSelection(){
         cancelAddAnnotation();
         return;
     }
-    var pre=document.createRange();
-    pre.selectNodeContents(div);
-    pre.setEnd(range.startContainer,range.startOffset);
-    var preText=pre.toString();
-    pendingSelection={text:text,start:preText.length,end:preText.length+text.length};
+    pendingSelection={text:text,start:0,end:text.length};
     var selRect=range.getBoundingClientRect();
     var btn=document.getElementById("annoFloatBtn");
     var btnH=40,btnW=110;
@@ -565,18 +561,6 @@ document.addEventListener("click",function(e){
         if(uid)viewDoc(uid);
     }
 });
-
-document.addEventListener("selectionchange",function(){
-    if(document.getElementById("editModal").classList.contains("open")){
-        setTimeout(syncAnnoSelection,10);
-    }
-});
-
-document.addEventListener("wheel",function(){
-    if(document.getElementById("editModal").classList.contains("open")){
-        cancelAddAnnotation();
-    }
-},{passive:true});
 
 document.getElementById("editTagParentSelect").addEventListener("change",updateChildOptions);
 document.getElementById("newSecondaryParent").addEventListener("change",updateChildOptions);
