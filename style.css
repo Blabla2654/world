@@ -32,8 +32,9 @@ header{background:linear-gradient(to bottom,#2a1810,#3d2914);border-bottom:3px s
 .doc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red),var(--gold),var(--red));opacity:0;transition:opacity .25s}
 .doc-card:hover{transform:translateY(-3px);border-color:var(--gold);box-shadow:0 8px 24px var(--shadow)}
 .doc-card:hover::before{opacity:1}
-.doc-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:10px}
-.doc-title{font-family:"ZCOOL XiaoWei",serif;font-size:1.15em;color:var(--ink);line-height:1.4}
+.doc-card-header{margin-bottom:12px}
+.doc-title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
+.doc-title{font-family:"ZCOOL XiaoWei",serif;font-size:1.15em;color:var(--ink);line-height:1.4;flex:1}
 .doc-uid{font-size:0.7em;color:var(--text-dim);font-family:monospace;background:var(--tag-bg);padding:2px 8px;border-radius:3px;border:1px solid var(--border);white-space:nowrap;flex-shrink:0}
 .doc-excerpt{color:var(--text-dim);font-size:0.88em;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.7}
 .doc-tags{display:flex;gap:6px;flex-wrap:wrap}

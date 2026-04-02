@@ -107,10 +107,10 @@ function renderDocGrid(){
         var ac=d.annotations?d.annotations.length:0;
         var badge=ac>0?"<span style='color:#ffc832;font-size:0.75em'>📌 "+ac+"</span>":"";
         h+="<div class=doc-card data-uid="+d.uid+">"+
-            "<div class=doc-card-header><div class=doc-title>"+d.title+"</div><div style='display:flex;gap:6px;align-items:center'>"+badge+"<div class=doc-uid>#"+d.uid+"</div></div></div>"+
+            "<div class=doc-card-header><div class=doc-title-row><div class=doc-title>"+d.title+"</div><div style='display:flex;gap:6px;align-items:center;flex-shrink:0'>"+badge+"<div class=doc-uid>#"+d.uid+"</div></div></div>"+
+            "<div class=doc-tags>"+th+"</div></div>"+
             "<div class=doc-excerpt>"+exc+"</div>"+
-            "<div class=doc-tags>"+th+"</div>"+
-            "<div class=doc-meta><span>"+d.created+"</span><span>"+d.tags.length+" 个标签</span></div>"+
+            "<div class=doc-meta><span>"+d.created+"</span></div>"+
             "</div>";
     });
     document.getElementById("docGrid").innerHTML=h;
