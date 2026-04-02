@@ -480,6 +480,8 @@ async function saveDoc(){
     var body=bodyDiv.innerHTML;
     if(!title){alert("请输入标题");return}
     stopEditBackup();
+    // 重新计算标注位置
+    recalcAnnotationPositions();
     if(mode==="new"){
         var doc={uid:generateUID(),title:title,body:body||"<br>",tags:editTagPairs.slice(),annotations:editAnnotationsArr.slice(),created:new Date().toISOString().split("T")[0]};
         docs.unshift(doc);
@@ -498,6 +500,22 @@ async function saveDoc(){
         viewDoc(currentViewUid);
         openModal("viewModal");
     }
+}
+
+function recalcAnnotationPositions(){
+    var div=document.getElementById("editBodyWrap");
+    var spans=div.querySelectorAll(".doc-anno");
+    spans.forEach(function(span){
+        var id=span.getAttribute("data-id");
+        var anno=editAnnotationsArr.find(function(a){return a.id===id});
+        if(anno){
+            var pre=document.createRange();
+            pre.selectNodeContents(div);
+            pre.setEnd(span,0);
+            anno.start=pre.toString().length;
+            anno.end=anno.start+span.textContent.length;
+        }
+    });
 }
 
 async function deleteDoc(){
