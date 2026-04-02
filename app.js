@@ -314,11 +314,11 @@ function openEditFromView(){
     document.getElementById("deleteDocBtn").style.display="flex";
     document.getElementById("editUid").value=d.uid;
     document.getElementById("editTitle").value=d.title;
-    editTagPairs=d.tags.map(function(t){return t.slice()});
+    editTagPairs=(d.tags||[]).map(function(t){return t.slice()});
     editAnnotationsArr=(d.annotations||[]).map(function(a){return Object.assign({},a)});
     buildTagOptions();
     renderEditTagSelects();
-    renderEditBodyWithAnnotations(d.body,editAnnotationsArr);
+    renderEditBodyWithAnnotations(stripHtml(d.body),editAnnotationsArr);
     renderEditAnnoList();
     cancelAddAnnotation();
     closeModal("viewModal");
