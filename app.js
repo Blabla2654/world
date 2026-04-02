@@ -365,15 +365,18 @@ function syncAnnoSelection(){
     pendingSelection={text:text,start:preText.length,end:preText.length+text.length};
     var selRect=range.getBoundingClientRect();
     var btn=document.getElementById("annoFloatBtn");
-    var container=document.getElementById("annoBtnContainer");
     btn.style.display="flex";
-    var btnRect=btn.getBoundingClientRect();
-    var top=selRect.bottom+window.scrollY+5;
-    var left=selRect.left+window.scrollX;
-    if(top+btnRect.height>window.innerHeight+window.scrollY)top=selRect.top+window.scrollY-btnRect.height-5;
-    if(left+btnRect.width>window.innerWidth)left=window.innerWidth-btnRect.width-10;
-    btn.style.top=top+"px";
-    btn.style.left=left+"px";
+    var btnH=40,btnW=150;
+    var bodyWrap=document.getElementById("editBodyWrap");
+    var bodyRect=bodyWrap.getBoundingClientRect();
+    var relTop=selRect.top-bodyRect.top+bodyWrap.scrollTop;
+    var relLeft=selRect.left-bodyRect.left+bodyWrap.scrollLeft;
+    if(relTop+selRect.height+btnH+8>bodyWrap.clientHeight)relTop=relTop-btnH-2;
+    else relTop=relTop+selRect.height+8;
+    if(relLeft+btnW>bodyWrap.clientWidth)relLeft=bodyWrap.clientWidth-btnW-10;
+    if(relLeft<0)relLeft=10;
+    btn.style.top=relTop+"px";
+    btn.style.left=relLeft+"px";
 }
 
 function confirmAddAnnotation(){
