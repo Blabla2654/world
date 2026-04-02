@@ -11,6 +11,7 @@ app = Flask(__name__)
 
 # ── 配置 ──────────────────────────────────────────
 DOCS_DIR = "/var/www/html/world/documents"
+TRASH_DIR = "/var/www/html/world/trash"
 TAGS_FILE = "/var/www/html/world/tags.json"
 LOCK_FILE = "/var/www/html/world/.lockfile"
 UPLOAD_DIR = "/var/www/html/world/assets/images"
@@ -104,11 +105,57 @@ def delete_doc_cache(uid):
     finally:
         funlock(lockfd)
 
+# ── 废弃文档缓存操作 ─────────────────────────────────
+def load_trash_cache():
+    docs = []
+    lockfd = flock("shared")
+    try:
+        if os.path.isdir(TRASH_DIR):
+            for fname in sorted(os.listdir(TRASH_DIR)):
+                if fname.endswith(".json"):
+                    fpath = os.path.join(TRASH_DIR, fname)
+                    with open(fpath, "r", encoding="utf-8") as f:
+                        try:
+                            docs.append(json.load(f))
+                        except Exception:
+                            pass
+    finally:
+        funlock(lockfd)
+    return docs
+
+def save_trash_cache(doc):
+    uid = doc.get("uid")
+    if not uid:
+        return
+    lockfd = flock("exclusive")
+    try:
+        if not os.path.isdir(TRASH_DIR):
+            os.makedirs(TRASH_DIR)
+        fpath = os.path.join(TRASH_DIR, f"{uid}.json")
+        with open(fpath, "w", encoding="utf-8") as f:
+            json.dump(doc, f, ensure_ascii=False, indent=2)
+    finally:
+        funlock(lockfd)
+
+def delete_trash_cache(uid):
+    lockfd = flock("exclusive")
+    try:
+        fpath = os.path.join(TRASH_DIR, f"{uid}.json")
+        if os.path.exists(fpath):
+            os.remove(fpath)
+            return True
+        return False
+    finally:
+        funlock(lockfd)
+
 # ── 启动时初始化缓存 ───────────────────────────────
+_trash_cache = {"docs": []}
+
 def _init_cache():
     _cache["tags"] = load_tags_cache()
     _cache["docs"] = load_docs_cache()
-    print(f"[init] tags={len(_cache['tags']['primary'])}, docs={len(_cache['docs'])}")
+    _trash_cache["docs"] = load_trash_cache()
+    print(f"[init] tags={len(_cache['tags']['primary'])}, docs={len(_cache['docs'])}, trash={len(_trash_cache['docs'])}")
 
 # ── 路由 ──────────────────────────────────────────
 @app.route("/api/tags", methods=["GET"])
@@ -155,12 +202,55 @@ def save_docs():
 
 @app.route("/api/docs/<uid>", methods=["DELETE"])
 def delete_doc(uid):
+    permanent = request.get_json().get("permanent", False) if request.get_json() else False
+    if permanent:
+        # 彻底删除
+        with _cache_lock:
+            before = len(_cache["docs"])
+            _cache["docs"] = [d for d in _cache["docs"] if d.get("uid") != uid]
+            _trash_cache["docs"] = [d for d in _trash_cache["docs"] if d.get("uid") != uid]
+            delete_doc_cache(uid)
+            delete_trash_cache(uid)
+        return jsonify({"ok": True, "deleted": 1})
+    else:
+        # 移入废弃区
+        with _cache_lock:
+            doc = None
+            for d in _cache["docs"]:
+                if d.get("uid") == uid:
+                    doc = d
+                    break
+            if doc:
+                from datetime import datetime
+                doc["deletedAt"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                _trash_cache["docs"].insert(0, doc)
+                _cache["docs"] = [d for d in _cache["docs"] if d.get("uid") != uid]
+                delete_doc_cache(uid)
+                save_trash_cache(doc)
+                return jsonify({"ok": True, "moved_to_trash": True})
+        return jsonify({"ok": False, "error": "doc not found"}), 404
+
+@app.route("/api/docs/trash", methods=["GET"])
+def get_trash_docs():
+    return jsonify(_trash_cache["docs"])
+
+@app.route("/api/docs/<uid>/restore", methods=["POST"])
+def restore_doc(uid):
     with _cache_lock:
-        before = len(_cache["docs"])
-        _cache["docs"] = [d for d in _cache["docs"] if d.get("uid") != uid]
-        deleted = before - len(_cache["docs"])
-        delete_doc_cache(uid)
-    return jsonify({"ok": True, "deleted": deleted})
+        doc = None
+        for d in _trash_cache["docs"]:
+            if d.get("uid") == uid:
+                doc = d
+                break
+        if doc:
+            if "deletedAt" in doc:
+                del doc["deletedAt"]
+            _cache["docs"].insert(0, doc)
+            _trash_cache["docs"] = [d for d in _trash_cache["docs"] if d.get("uid") != uid]
+            delete_trash_cache(uid)
+            save_doc_cache(doc)
+            return jsonify({"ok": True})
+    return jsonify({"ok": False, "error": "doc not found in trash"}), 404
 
 @app.route("/api/upload", methods=["POST"])
 def upload_image():
