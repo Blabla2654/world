@@ -352,12 +352,21 @@ function focusAnnotation(id){
 // ── 编辑：标注 ──────────────────────────────────
 function syncAnnoSelection(){
     var sel=window.getSelection();
-    if(!sel||sel.rangeCount===0||sel.isCollapsed)return;
+    if(!sel||sel.rangeCount===0||sel.isCollapsed){
+        cancelAddAnnotation();
+        return;
+    }
     var range=sel.getRangeAt(0);
     var div=document.getElementById("editBodyWrap");
-    if(!div||!div.contains(range.commonAncestorContainer))return;
+    if(!div||!div.contains(range.commonAncestorContainer)){
+        cancelAddAnnotation();
+        return;
+    }
     var text=sel.toString().trim();
-    if(!text)return;
+    if(!text){
+        cancelAddAnnotation();
+        return;
+    }
     var pre=document.createRange();
     pre.selectNodeContents(div);
     pre.setEnd(range.startContainer,range.startOffset);
@@ -365,7 +374,6 @@ function syncAnnoSelection(){
     pendingSelection={text:text,start:preText.length,end:preText.length+text.length};
     var selRect=range.getBoundingClientRect();
     var btn=document.getElementById("annoFloatBtn");
-    var modal=document.getElementById("editModal");
     var btnH=40,btnW=110;
     var top=selRect.bottom+window.scrollY;
     var left=selRect.left+window.scrollX;
@@ -563,6 +571,12 @@ document.addEventListener("selectionchange",function(){
         setTimeout(syncAnnoSelection,10);
     }
 });
+
+document.addEventListener("wheel",function(){
+    if(document.getElementById("editModal").classList.contains("open")){
+        cancelAddAnnotation();
+    }
+},{passive:true});
 
 document.getElementById("editTagParentSelect").addEventListener("change",updateChildOptions);
 document.getElementById("newSecondaryParent").addEventListener("change",updateChildOptions);
