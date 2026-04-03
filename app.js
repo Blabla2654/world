@@ -304,9 +304,7 @@ function openNewDoc(){
     cancelAddAnnotation();
     openModal("editModal");
     requestAnimationFrame(function(){
-        var div=document.getElementById("editBodyWrap");
-        div.focus();
-        div.addEventListener("blur",function(){requestAnimationFrame(function(){div.focus()})},{once:true});
+        document.getElementById("editBodyWrap").focus();
     });
     startEditBackup();
 }
@@ -329,9 +327,7 @@ function openEditFromView(){
     closeModal("viewModal");
     openModal("editModal");
     requestAnimationFrame(function(){
-        var div=document.getElementById("editBodyWrap");
-        div.focus();
-        div.addEventListener("blur",function(){requestAnimationFrame(function(){div.focus()})},{once:true});
+        document.getElementById("editBodyWrap").focus();
     });
     startEditBackup();
 }
