@@ -303,6 +303,7 @@ function openNewDoc(){
     renderEditAnnoList();
     cancelAddAnnotation();
     openModal("editModal");
+    document.getElementById("editBodyWrap").focus();
     startEditBackup();
 }
 
@@ -323,6 +324,7 @@ function openEditFromView(){
     cancelAddAnnotation();
     closeModal("viewModal");
     openModal("editModal");
+    document.getElementById("editBodyWrap").focus();
     startEditBackup();
 }
 
