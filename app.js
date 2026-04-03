@@ -303,7 +303,7 @@ function openNewDoc(){
     renderEditAnnoList();
     cancelAddAnnotation();
     openModal("editModal");
-    setTimeout(function(){
+    requestAnimationFrame(function(){
         var div=document.getElementById("editBodyWrap");
         div.focus();
         var range=document.createRange();
@@ -312,7 +312,7 @@ function openNewDoc(){
         var sel=window.getSelection();
         sel.removeAllRanges();
         sel.addRange(range);
-    },50);
+    });
     startEditBackup();
 }
 
@@ -333,7 +333,7 @@ function openEditFromView(){
     cancelAddAnnotation();
     closeModal("viewModal");
     openModal("editModal");
-    setTimeout(function(){
+    requestAnimationFrame(function(){
         var div=document.getElementById("editBodyWrap");
         div.focus();
         var range=document.createRange();
@@ -342,7 +342,7 @@ function openEditFromView(){
         var sel=window.getSelection();
         sel.removeAllRanges();
         sel.addRange(range);
-    },50);
+    });
     startEditBackup();
 }
 
