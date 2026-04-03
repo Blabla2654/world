@@ -347,6 +347,25 @@ function focusAnnotation(id){
     [].slice.call(document.querySelectorAll(".doc-anno.anno-active")).forEach(function(el){el.classList.remove("anno-active")});
     var span=document.querySelector("#editBodyWrap .doc-anno[data-id="+id+"]");
     if(span){span.classList.add("anno-active");span.scrollIntoView({behavior:"smooth",block:"center"})}
+    // 显示标注弹窗
+    var d=docs.find(function(x){return x.uid===currentViewUid});
+    if(!d||!d.annotations)return;
+    var a=d.annotations.find(function(x){return x.id===id});
+    if(!a)return;
+    document.getElementById("annoPopupTitle").textContent="📌 "+a.text;
+    document.getElementById("annoPopupBody").textContent=a.note;
+    var pop=document.getElementById("annoPopup");
+    pop.classList.add("open");
+    var rect=span?span.getBoundingClientRect():{bottom:100,left:200};
+    var vw=window.innerWidth,vh=window.innerHeight;
+    var pw=pop.offsetWidth||320,ph=pop.offsetHeight||150;
+    var top=rect.bottom+8;
+    var left=rect.left-30;
+    if(top+ph>vh)top=rect.top-ph-8;
+    if(left+pw>vw)left=vw-pw-10;
+    if(left<10)left=10;
+    pop.style.top=top+"px";
+    pop.style.left=left+"px";
 }
 
 // ── 编辑：标注 ──────────────────────────────────
