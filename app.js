@@ -183,7 +183,9 @@ function showAnnoPopup(annoId,event){
     document.getElementById("annoPopupBody").textContent=a.note;
     var pop=document.getElementById("annoPopup");
     pop.classList.add("open");
-    var span=document.querySelector("#viewBody .doc-anno[data-id='"+annoId+"']");
+    // 优先用event.target，如果没有则用ID查找
+    var span=event&&event.target?event.target.closest(".doc-anno"):null;
+    if(!span)span=document.querySelector("#viewBody .doc-anno[data-id='"+annoId+"']");
     var rect=span?span.getBoundingClientRect():null;
     var vw=window.innerWidth,vh=window.innerHeight;
     var pw=pop.offsetWidth||320,ph=pop.offsetHeight||150;
