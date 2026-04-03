@@ -324,7 +324,11 @@ function openEditFromView(){
     editAnnotationsArr=(d.annotations||[]).map(function(a){return Object.assign({},a)});
     buildTagOptions();
     renderEditTagSelects();
-    renderEditBodyWithAnnotations(stripHtml(d.body),editAnnotationsArr);
+    // 直接用body内容（包含img标签），转换换行
+    var editBodyDiv=document.getElementById("editBodyWrap");
+    editBodyDiv.innerHTML=d.body.replace(/\n/g,"<br>");
+    editBodyText=d.body;
+    renderEditAnnoList();
     renderEditAnnoList();
     cancelAddAnnotation();
     closeModal("viewModal");
