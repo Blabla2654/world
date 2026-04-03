@@ -354,7 +354,7 @@ function renderEditBodyWithAnnotations(body,annotations){
 
 function focusAnnotation(id){
     [].slice.call(document.querySelectorAll(".doc-anno.anno-active")).forEach(function(el){el.classList.remove("anno-active")});
-    var span=document.querySelector("#editBodyWrap .doc-anno[data-id="+id+"]");
+    var span=document.querySelector("#editBodyWrap .doc-anno[data-id='"+id+"'],#viewBody .doc-anno[data-id='"+id+"']");
     if(span){span.classList.add("anno-active");span.scrollIntoView({behavior:"smooth",block:"center"})}
     // 显示标注弹窗
     var d=docs.find(function(x){return x.uid===currentViewUid});
