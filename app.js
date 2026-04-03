@@ -525,8 +525,16 @@ async function saveDoc(){
     var mode=document.getElementById("docMode").value;
     var title=document.getElementById("editTitle").value.trim();
     var bodyDiv=document.getElementById("editBodyWrap");
-    // 获取纯文本并转换br为换行
-    var body=bodyDiv.textContent.replace(/<br\s*\/?>/gi,"\n").trim();
+    // 提取img标签，然后获取纯文本（去掉HTML标签和标注相关属性）
+    var tempDiv=document.createElement("div");
+    tempDiv.innerHTML=bodyDiv.innerHTML;
+    // 提取所有img标签的完整HTML
+    var imgs=[];
+    tempDiv.querySelectorAll("img").forEach(function(img,i){imgs.push(img.outerHTML);img.replaceWith("\x00IMG"+i+"\x00")});
+    // 转换br为换行，去除所有其他HTML标签
+    var body=tempDiv.textContent.replace(/<br\s*\/?>/gi,"\n").trim();
+    // 还原img标签
+    imgs.forEach(function(img,i){body=body.replace("\x00IMG"+i+"\x00",img)});
     if(!title){alert("请输入标题");return}
     stopEditBackup();
     // 重新计算标注位置
