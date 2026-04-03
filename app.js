@@ -15,6 +15,9 @@ var editMemory={title:"",body:"",tags:[],annotations:[]};
 var editBodyText="";
 var editBackupTimer=null;
 
+// 调试焦点丢失
+document.addEventListener("focus",function(e){console.log("FOCUS:",e.target.id||e.target.tagName,"class:",e.target.className)},true);
+
 // ── 初始化 ──────────────────────────────────────
 function loadTags(){
     fetch(TAGS_API).then(function(r){return r.ok?r.json():null})["catch"](function(){return null}).then(function(t){
@@ -306,6 +309,7 @@ function openNewDoc(){
     requestAnimationFrame(function(){
         var div=document.getElementById("editBodyWrap");
         div.focus();
+        console.log("focused element after openEdit:", document.activeElement.id, document.activeElement.tagName);
         var range=document.createRange();
         range.selectNodeContents(div);
         range.collapse(false);
