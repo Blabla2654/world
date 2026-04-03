@@ -183,17 +183,18 @@ function showAnnoPopup(annoId,event){
     document.getElementById("annoPopupBody").textContent=a.note;
     var pop=document.getElementById("annoPopup");
     pop.classList.add("open");
-    var rect=event.target.getBoundingClientRect();
+    var span=document.querySelector("#viewBody .doc-anno[data-id='"+annoId+"']");
+    var rect=span?span.getBoundingClientRect():null;
     var vw=window.innerWidth,vh=window.innerHeight;
     var pw=pop.offsetWidth||320,ph=pop.offsetHeight||150;
-    var top=rect.bottom+8;
-    var left=rect.left-30;
-    if(top+ph>vh)top=rect.top-ph-8;
+    var top=rect?(rect.bottom+8):100;
+    var left=rect?(rect.left-30):200;
+    if(top+ph>vh)top=rect?Math.max(0,rect.top-ph-8):100;
     if(left+pw>vw)left=vw-pw-10;
     if(left<10)left=10;
     pop.style.top=top+"px";
     pop.style.left=left+"px";
-    event.stopPropagation();
+    if(event)event.stopPropagation();
 }
 
 function closeAnnoPopup(){document.getElementById("annoPopup").classList.remove("open")}
