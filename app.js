@@ -523,8 +523,8 @@ async function saveDoc(){
     var mode=document.getElementById("docMode").value;
     var title=document.getElementById("editTitle").value.trim();
     var bodyDiv=document.getElementById("editBodyWrap");
-    // 获取innerHTML并转换br为换行
-    var body=bodyDiv.innerHTML.replace(/<br\s*\/?>/gi,"\n");
+    // 获取纯文本并转换br为换行
+    var body=bodyDiv.textContent.replace(/<br\s*\/?>/gi,"\n").trim();
     if(!title){alert("请输入标题");return}
     stopEditBackup();
     // 重新计算标注位置
