@@ -312,6 +312,7 @@ function openNewDoc(){
         var sel=window.getSelection();
         sel.removeAllRanges();
         sel.addRange(range);
+        div.addEventListener("blur",function(){requestAnimationFrame(function(){div.focus()})},{once:true});
     });
     startEditBackup();
 }
@@ -342,6 +343,7 @@ function openEditFromView(){
         var sel=window.getSelection();
         sel.removeAllRanges();
         sel.addRange(range);
+        div.addEventListener("blur",function(){requestAnimationFrame(function(){div.focus()})},{once:true});
     });
     startEditBackup();
 }
