@@ -426,7 +426,6 @@ function confirmAddAnnotation(){
 function cancelAddAnnotation(){
     pendingSelection=null;
     document.getElementById("annoFloatBtn").style.display="none";
-    window.getSelection().removeAllRanges();
 }
 
 function removeEditAnnotation(id){
