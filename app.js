@@ -303,7 +303,7 @@ function openNewDoc(){
     renderEditAnnoList();
     cancelAddAnnotation();
     openModal("editModal");
-    document.getElementById("editBodyWrap").focus();
+    setTimeout(function(){document.getElementById("editBodyWrap").focus()},50);
     startEditBackup();
 }
 
@@ -324,7 +324,7 @@ function openEditFromView(){
     cancelAddAnnotation();
     closeModal("viewModal");
     openModal("editModal");
-    document.getElementById("editBodyWrap").focus();
+    setTimeout(function(){document.getElementById("editBodyWrap").focus()},50);
     startEditBackup();
 }
 
