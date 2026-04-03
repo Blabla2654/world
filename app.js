@@ -303,7 +303,16 @@ function openNewDoc(){
     renderEditAnnoList();
     cancelAddAnnotation();
     openModal("editModal");
-    setTimeout(function(){document.getElementById("editBodyWrap").focus()},50);
+    setTimeout(function(){
+        var div=document.getElementById("editBodyWrap");
+        div.focus();
+        var range=document.createRange();
+        range.selectNodeContents(div);
+        range.collapse(false);
+        var sel=window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    },50);
     startEditBackup();
 }
 
@@ -324,7 +333,16 @@ function openEditFromView(){
     cancelAddAnnotation();
     closeModal("viewModal");
     openModal("editModal");
-    setTimeout(function(){document.getElementById("editBodyWrap").focus()},50);
+    setTimeout(function(){
+        var div=document.getElementById("editBodyWrap");
+        div.focus();
+        var range=document.createRange();
+        range.selectNodeContents(div);
+        range.collapse(false);
+        var sel=window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    },50);
     startEditBackup();
 }
 
