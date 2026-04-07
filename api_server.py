@@ -3,6 +3,9 @@
 
 import json
 import os
+import subprocess
+import time
+from datetime import datetime
 import fcntl
 import threading
 from flask import Flask, request, jsonify
@@ -271,6 +274,34 @@ def upload_image():
     file.save(fpath)
     url = f"/assets/images/{filename}"
     return jsonify({"url": url, "filename": filename})
+
+
+@app.route("/api/git/push", methods=["POST"])
+def git_push():
+    """推送文档改动到 GitHub"""
+    try:
+        repo = os.path.dirname(os.path.abspath(__file__))
+        now = datetime.now().strftime("%Y-%m-%d %H:%M")
+        # git add
+        r1 = subprocess.run(["git", "add", "."], cwd=repo, capture_output=True, text=True, timeout=30)
+        # git commit
+        r2 = subprocess.run(
+            ["git", "commit", "-m", f"Auto-push: {now}"],
+            cwd=repo, capture_output=True, text=True, timeout=30
+        )
+        # git push
+        r3 = subprocess.run(
+            ["git", "push", "origin", "main"],
+            cwd=repo, capture_output=True, text=True, timeout=60
+        )
+        if r3.returncode == 0:
+            return jsonify({"ok": True, "message": f"推送成功 ({now})"})
+        else:
+            return jsonify({"ok": False, "error": r3.stderr or r3.stdout}), 500
+    except subprocess.TimeoutExpired:
+        return jsonify({"ok": False, "error": "推送超时"}), 500
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 # ── 启动 ──────────────────────────────────────────
 if __name__ == "__main__":

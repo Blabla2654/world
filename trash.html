@@ -24,7 +24,23 @@
             <p class="loading-tip">加载中...</p>
         </div>
     </main>
-    <script src="api_server.py? raw"></script>
+
+    <!-- 查看文档弹窗 -->
+    <div id="viewModal" class="modal-overlay" style="display:none;">
+        <div class="modal-content doc-view-modal">
+            <div class="modal-header">
+                <h2 id="viewDocTitle">文档标题</h2>
+                <button class="modal-close" onclick="closeView()">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="viewDocBody" class="doc-body"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeView()">关闭</button>
+            </div>
+        </div>
+    </div>
+
     <script src="trash.js"></script>
 </body>
 </html>

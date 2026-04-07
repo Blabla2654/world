@@ -10,6 +10,10 @@ header{background:linear-gradient(to bottom,#2a1810,#3d2914);border-bottom:3px s
 .btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(139,35,35,0.4)}
 .btn-ghost{background:transparent;border:1px solid var(--gold);color:var(--gold-light)}
 .btn-ghost:hover{background:rgba(200,146,42,0.15)}
+.btn.danger{background:rgba(139,35,35,0.08);border:1px solid rgba(139,35,35,0.3);color:var(--red)}
+.btn.danger:hover{background:rgba(139,35,35,0.18);border-color:var(--red)}
+.btn.danger.small{padding:5px 14px;font-size:0.8em}
+.btn.small{padding:5px 14px;font-size:0.8em}
 .container{max-width:1100px;margin:0 auto;padding:30px 24px}
 .stats{display:flex;justify-content:center;gap:60px;margin-bottom:28px;padding:18px 40px;background:var(--paper);border:1px solid var(--border);border-radius:8px;box-shadow:inset 0 0 20px rgba(180,140,80,0.08)}
 .stat-item{text-align:center}
@@ -73,3 +77,99 @@ header{background:linear-gradient(to bottom,#2a1810,#3d2914);border-bottom:3px s
 .selected-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .selected-tag{display:inline-flex;align-items:center;padding:4px 12px;background:rgba(200,146,42,0.1);border:1px solid rgba(200,146,42,0.4);border-radius:4px;font-size:0.82em;color:#7a4a10;cursor:pointer}
 .selected-tag:hover{background:rgba(200,146,42,0.2)}
+
+/* ===== 废弃文档页 ===== */
+.trash-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding:14px 20px;background:var(--paper);border:1px solid var(--border);border-radius:8px;font-size:0.9em}
+#trashCount{color:var(--ink);font-weight:600}
+.trash-card{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:20px 22px;margin-bottom:14px;box-shadow:0 2px 8px var(--shadow);transition:all .2s}
+.trash-card:hover{border-color:var(--gold);box-shadow:0 4px 16px var(--shadow)}
+.trash-info{flex:1;min-width:0}
+.trash-info h3{font-family:"ZCOOL XiaoWei",serif;font-size:1.1em;color:var(--ink);margin-bottom:8px;letter-spacing:1px}
+.trash-preview{color:var(--text-dim);font-size:0.85em;line-height:1.7;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.trash-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.trash-date{font-size:0.75em;color:var(--text-dim)}
+.trash-actions{display:flex;gap:8px;flex-shrink:0;align-items:center}
+.loading-tip,.empty-tip,.error-tip{text-align:center;padding:60px 20px;color:var(--text-dim);font-size:0.95em}
+.loading-tip::before{content:'加载中...';display:block;font-size:1.2em;margin-bottom:8px}
+.empty-tip::before{content:'🗑️';display:block;font-size:2em;margin-bottom:10px}
+.error-tip{color:var(--red)}
+
+/* ===== 废弃页面查看弹窗 ===== */
+.doc-view-modal {
+    background: var(--paper);
+    border: 2px solid var(--gold);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 28px 32px;
+    box-shadow: 0 20px 60px rgba(30, 15, 5, 0.4);
+}
+
+.doc-view-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--border);
+}
+
+.doc-view-modal .modal-header h2 {
+    font-family: "ZCOOL XiaoWei", serif;
+    font-size: 1.35em;
+    color: var(--ink);
+    letter-spacing: 2px;
+    margin: 0;
+}
+
+.doc-view-modal .modal-close {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 1.6em;
+    cursor: pointer;
+    padding: 4px 10px;
+    line-height: 1;
+}
+
+.doc-view-modal .modal-close:hover {
+    color: var(--ink);
+}
+
+.doc-view-modal .modal-body {
+    color: var(--ink-light);
+    line-height: 2;
+    font-size: 0.95em;
+}
+
+.doc-view-modal .modal-footer {
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    text-align: right;
+}
+
+/* 废弃页面 doc-body 内容样式 */
+#viewDocBody {
+    color: var(--ink-light);
+    line-height: 2;
+    font-size: 0.95em;
+}
+
+#viewDocBody img {
+    max-width: 100%;
+    border-radius: 6px;
+    margin: 8px 0;
+}
+
+#viewDocBody strong {
+    color: var(--ink);
+    font-weight: bold;
+}
+
+#viewDocBody mark {
+    background: rgba(212, 168, 66, 0.25);
+    padding: 0 2px;
+}

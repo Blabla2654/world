@@ -625,3 +625,27 @@ document.getElementById("newSecondaryParent").addEventListener("change",updateCh
 
 // ── 启动 ─────────────────────────────────────────
 loadTags();
+
+// ── 推送到 Git ───────────────────────────────────
+var _pushing = false;
+async function pushToGit() {
+    if (_pushing) return;
+    _pushing = true;
+    var btn = document.querySelector('button[onclick="pushToGit()"]');
+    var oldText = btn ? btn.textContent : '';
+    if (btn) { btn.textContent = '⬆ 推送中...'; btn.disabled = true; }
+    try {
+        var res = await fetch('/api/git/push', { method: 'POST' });
+        var data = await res.json();
+        if (data.ok) {
+            alert('✅ ' + data.message);
+        } else {
+            alert('❌ 推送失败：' + (data.error || '未知错误'));
+        }
+    } catch(e) {
+        alert('❌ 推送失败：' + e.message);
+    } finally {
+        if (btn) { btn.textContent = oldText; btn.disabled = false; }
+        _pushing = false;
+    }
+}
