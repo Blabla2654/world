@@ -152,12 +152,13 @@ function renderViewBody(body,annotations){
 }
 
 function renderAnnotatedBody(body,annotations){
-    // 处理 [IMG:src] 图片标记
-    var imgReplacer=function(m,src){
-        return'<img src="'+src+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
-    };
-    var bodyForAnno=body.replace(/\[IMG:([^\]]+)\]/g,imgReplacer);
-    var plain=escapeHtml(bodyForAnno).replace(/\n/g,"<br>");
+    // 正确顺序：先提取 [IMG:] 标记，再 HTML 转义，最后还原 <img>
+    var _imgSrcs=[];var _imgIdx=0;
+    var _body2=body.replace(/\[IMG:([^\]]+)\]\/g,function(m,src){_imgSrcs.push(src);return '\x1bIMG\x1b'+(_imgSrcs.length-1)+'\x1b';});
+    var plain=escapeHtml(_body2).replace(/\n/g,"<br>");
+    plain=plain.replace(/\x1bIMG\x1b(\d+)\x1b/g,function(m,idx){
+        return '<img src="'+_imgSrcs[parseInt(idx)]+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
+    });
     if(!annotations||annotations.length===0)return renderBodyWithImages(plain);
     var sorted=annotations.slice().sort(function(a,b){return a.start-b.start});
     var r="",lastEnd=0;
@@ -284,7 +285,8 @@ function restoreEditMemory(){
     if(editMemory.title){document.getElementById("editTitle").value=editMemory.title}
     if(editMemory.body){
         // editMemory.body 存的是纯文本（\n格式），转回 <br> 再写入
-        document.getElementById("editBodyWrap").innerHTML=editMemory.body.replace(/\n/g,"<br>");
+        var body2=editMemory.body.replace(/&lt;IMG:([^&]+)&gt;/g,function(m,src){return "[IMG:"+src+"]";}).replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/\[IMG:([^\]]+)\]\/g,function(m,src){return '<img src="'+src+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';});
+        document.getElementById("editBodyWrap").innerHTML=body2.replace(/\n/g,"<br>");
         editBodyText=editMemory.body;
     }
     editTagPairs=editMemory.tags.slice();
@@ -344,11 +346,13 @@ function renderEditBodyWithAnnotations(body,annotations){
     var div=document.getElementById("editBodyWrap");
     editBodyText=body;
     // 处理图片标记 [IMG:src] → <img src="src">
-    var displayHtml=body
-        .replace(/\[IMG:([^\]]+)\]/g,function(m,src){
-            return '<img src="'+src+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
-        })
-        .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+    // 正确顺序：先提取 [IMG:] 标记，再 HTML 转义，最后还原 <img>
+    var _imgSrcs=[];
+    var _bodyForImg=body.replace(/\[IMG:([^\]]+)\]\/g,function(m,src){_imgSrcs.push(src);return '\x1bIMG\x1b'+(_imgSrcs.length-1)+'\x1b';});
+    var plain=_bodyForImg.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+    var displayHtml=plain.replace(/\x1bIMG\x1b(\d+)\x1b/g,function(m,idx){
+        return '<img src="'+_imgSrcs[parseInt(idx)]+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
+    });
     if(!annotations||annotations.length===0){div.innerHTML=displayHtml;return}
     var sorted=annotations.slice().sort(function(a,b){return a.start-b.start});
     var html="",lastEnd=0;
@@ -359,9 +363,13 @@ function renderEditBodyWithAnnotations(body,annotations){
         lastEnd=a.end;
     });
     html+=escapeHtml(body.substring(lastEnd));
-    div.innerHTML=html.replace(/\[IMG:([^\]]+)\]/g,function(m,src){
-        return '<img src="'+src+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
-    }).replace(/\n/g,"<br>");
+    // 同理：先提取 [IMG:] 再转义最后还原 <img>
+    html=html.replace(/\[IMG:([^\]]+)\]\/g,function(m,src){_imgSrcs.push(src);return '\x1bIMG\x1b'+(_imgSrcs.length-1)+'\x1b';});
+    html=html.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+    html=html.replace(/\x1bIMG\x1b(\d+)\x1b/g,function(m,idx){
+        return '<img src="'+_imgSrcs[parseInt(idx)]+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
+    });
+    div.innerHTML=html;
 }
 
 function focusAnnotation(id){

@@ -82,23 +82,23 @@ def _open_doc_by_title(page, title):
     return False
 
 def test_create_doc_with_annotations_images_newlines():
-    """主页：创建含多标注、多图片、多换行的文档"""
+    """主页：创建含标注、图片、多换行的文档"""
     uid = TEST_UID + "_rich"
     CREATED_UIDS.append(uid)
 
+    # 身体文本含 [IMG:] 和多段换行
+    body_text = ("第一段内容，含标注文字。\n\n"
+                 "第二段内容，含图片。\n"
+                 "[IMG:/assets/images/test.jpg]\n\n"
+                 "第三段内容。")
     doc = {
         "uid": uid,
         "title": "丰富格式测试文档",
-        "body": (
-            "第一段，包含一个标注高亮。\n\n"
-            "第二段，包含图片。\n\n"
-            "第三段，包含两个标注高亮。"
-        ),
+        "body": body_text,
         "tags": [],
         "annotations": [
-            {"id": "a1", "text": "标注高亮", "start": 5, "end": 9},
-            {"id": "a2", "text": "标注", "start": 3, "end": 5},
-            {"id": "a3", "text": "高亮", "start": 8, "end": 10}
+            # 标注：指向 body_text 中 "标注文字" 所在位置
+            {"id": "ra1", "text": "标注文字", "start": 5, "end": 9}
         ],
         "created": "2026-04-07"
     }
@@ -117,23 +117,28 @@ def test_create_doc_with_annotations_images_newlines():
         assert found, "找不到丰富格式测试文档"
         page.wait_for_timeout(800)
 
-        # 检查视图弹窗
-        modal = page.query_selector('#viewModal')
-        assert modal, "没有找到视图弹窗"
-
+        # 检查标题
         title = page.query_selector('#viewTitle').inner_text()
         assert title == "丰富格式测试文档", f"标题不对: {title}"
 
-        # 检查内容有多段（换行）
+        # 检查图片（[IMG:] 应转为 <img>）
         body_el = page.query_selector('#viewBody')
         body_html = body_el.inner_html()
-        assert '<p>' in body_html or '\n' in body_el.inner_text(), f"换行丢失"
+        assert '<img' in body_html, f"[IMG:] 未转为 <img>: {body_html[:300]}"
+
+        # 检查换行
+        assert '<br>' in body_html or '<p>' in body_html, f"换行丢失: {body_html[:200]}"
+
+        # 检查标注 span
+        anno_spans = page.query_selector_all('#viewBody .doc-anno')
+        assert len(anno_spans) >= 1, f"标注 span 数量不足: {len(anno_spans)}"
 
         # 关闭弹窗
         page.keyboard.press('Escape')
         page.wait_for_timeout(300)
         browser.close()
     print("✅ test_create_doc_with_annotations_images_newlines 通过")
+
 
 def test_edit_mode_basic():
     """主页：编辑模式下内容显示正常"""
