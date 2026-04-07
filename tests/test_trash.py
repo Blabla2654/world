@@ -128,6 +128,12 @@ def test_trash_restore_doc():
                         break
                 break
         page.wait_for_timeout(1000)
+        # 等待还原完成：trashList 中不再有此文档
+        page.wait_for_function(
+            "() => !trashList.some(d => d.title === '还原测试文档')",
+            timeout=8000
+        )
+        page.wait_for_timeout(300)  # 等 DOM 渲染
         titles = [c.query_selector('.trash-title').inner_text() for c in page.query_selector_all('.trash-card')]
         assert "还原测试文档" not in titles, f"还原后仍在列表: {titles}"
         browser.close()
