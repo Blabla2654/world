@@ -1,83 +1,104 @@
-// API配置
-var API="/api/docs/trash";
+// 废弃文档页
+var API_BASE = '/api';
 
-// 全局状态
-var trashDocs=[];
-
-// ── 初始化 ──────────────────────────────────────
-function loadTrashDocs(){
-    fetch(API).then(function(r){return r.ok?r.json():[]}).then(function(d){
-        trashDocs=d;
-        render();
-    })["catch"](function(){
-        trashDocs=[];
-        render();
-    });
+function loadTrash(){
+    var list=document.getElementById('trashList');
+    list.innerHTML='<p class="loading-tip">加载中...</p>';
+    fetch(API_BASE+'/docs')
+        .then(r=>r.json())
+        .then(docs=>{
+            docs=docs.filter(d=>d._trash);
+            document.getElementById('trashCount').textContent='废弃文档：'+docs.length+' 篇';
+            if(docs.length===0){
+                list.innerHTML='<p class="empty-tip">没有废弃文档</p>';return;
+            }
+            docs.sort((a,b)=>new Date(b._trashedAt||b.created)-new Date(a._trashedAt||a.created));
+            var html='';
+            docs.forEach(d=>{
+                var created=d.created||'?';
+                var tags=(d.tags||[]).map(t=>`<span class="tag-chip">${t[0]}</span>`).join('');
+                html+=`
+    <div class="trash-card" data-uid="${d.uid}">
+        <div class="trash-info">
+            <h3>${d.title||'无标题'}</h3>
+            <p class="trash-preview">${(d.body||'').substring(0,100)}...</p>
+            <div class="trash-tags">${tags}</div>
+            <p class="trash-date">放入时间：${created}</p>
+        </div>
+        <div class="trash-actions">
+            <button class="btn small" onclick="restoreDoc('${d.uid}')">还原</button>
+            <button class="btn danger small" onclick="deleteDoc('${d.uid}')">永久删除</button>
+        </div>
+    </div>`;
+            });
+            list.innerHTML=html;
+        })
+        .catch(()=>{ list.innerHTML='<p class="error-tip">加载失败</p>'; });
 }
 
-function render(){
-    renderStats();
-    renderDocGrid();
-}
-
-function renderStats(){
-    document.getElementById("stats").innerHTML=
-        "<div class=stat-item><div class=stat-num>"+trashDocs.length+"</div><div class=stat-label>篇废弃文档</div></div>";
-}
-
-function stripHtml(html){if(!html)return"";return html.replace(/<[^>]*>/g,"").replace(/&nbsp;/g," ").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&amp;/g,"&").trim()}
-
-function renderDocGrid(){
-    if(trashDocs.length===0){
-        document.getElementById("docGrid").innerHTML="";
-        document.getElementById("emptyState").style.display="block";
-        return;
-    }
-    document.getElementById("emptyState").style.display="none";
-    var h="";
-    trashDocs.forEach(function(d){
-        var exc=stripHtml(d.body).substring(0,100)+(stripHtml(d.body).length>100?"…":"");
-        var th=d.tags.map(function(t){return"<span class=doc-tag>"+t[0]+"<span class=sep> ‹ </span>"+t[1]+"</span>"}).join("");
-        var delDate=d.deletedAt?"<span style='color:#ff6464'>删除于: "+d.deletedAt+"</span>":"";
-        h+="<div class=doc-card data-uid="+d.uid+">"+
-            "<div class=doc-card-header><div class=doc-title-row><div class=doc-title>"+d.title+"</div><div style='display:flex;gap:6px;align-items:center;flex-shrink:0'><div class=doc-uid>#"+d.uid+"</div></div></div>"+
-            "<div class=doc-tags>"+th+"</div></div>"+
-            "<div class=doc-excerpt>"+exc+"</div>"+
-            "<div class=doc-meta><span>"+d.created+"</span><span>"+delDate+"</span></div>"+
-            "<div style='margin-top:12px;display:flex;gap:8px'>"+
-            "<button class='btn btn-ghost' style='flex:1' onclick='restoreDoc(\""+d.uid+"\")'>恢复</button>"+
-            "<button class='btn btn-ghost' style='flex:1;color:#ff6464;border-color:rgba(255,100,100,0.3)' onclick='permanentDeleteDoc(\""+d.uid+"\")'>彻底删除</button>"+
-            "</div>"+
-            "</div>";
-    });
-    document.getElementById("docGrid").innerHTML=h;
-}
-
-// ── 恢复文档 ──────────────────────────────────────
+// 还原
 function restoreDoc(uid){
-    if(!confirm("确定恢复这篇文档？"))return;
-    fetch("/api/docs/"+uid+"/restore",{method:"POST"}).then(function(r){return r.ok}).then(function(ok){
-        if(ok){
-            trashDocs=trashDocs.filter(function(d){return d.uid!==uid});
-            render();
+    fetch(API_BASE+'/docs/'+uid,{
+        method:'PATCH',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({_trash:false})
+    })
+    .then(r=>r.json())
+    .then(d=>{
+        if(d.ok){
+            var card=document.querySelector(`[data-uid="${uid}"]`);
+            if(card)card.remove();
+            var left=document.querySelectorAll(".trash-card").length;
+            document.getElementById("trashCount").textContent=`废弃文档：${left} 篇`;
+            if(left===0)document.getElementById("trashList").innerHTML="<p class='empty-tip'>没有废弃文档</p>";
         }
     });
 }
 
-// ── 彻底删除 ──────────────────────────────────────
-function permanentDeleteDoc(uid){
-    if(!confirm("彻底删除后无法恢复，确定？"))return;
-    fetch("/api/docs/"+uid,{
-        method:"DELETE",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({permanent:true})
-    }).then(function(r){return r.ok}).then(function(ok){
-        if(ok){
-            trashDocs=trashDocs.filter(function(d){return d.uid!==uid});
-            render();
-        }
-    });
+// 永久删除
+function deleteDoc(uid){
+    if(!confirm("确定要永久删除这篇文档吗？\n删除后无法恢复。"))return;
+    fetch(API_BASE+'/docs/'+uid,{method:"DELETE"})
+        .then(r=>r.json())
+        .then(d=>{
+            if(d.ok){
+                var card=document.querySelector(`[data-uid="${uid}"]`);
+                if(card)card.remove();
+                var left=document.querySelectorAll(".trash-card").length;
+                document.getElementById("trashCount").textContent=`废弃文档：${left} 篇`;
+                if(left===0)document.getElementById("trashList").innerHTML="<p class='empty-tip'>没有废弃文档</p>";
+            }
+        });
 }
 
-// ── 启动 ─────────────────────────────────────────
-loadTrashDocs();
+// 全部删除
+async function emptyTrash(){
+    var cards=document.querySelectorAll(".trash-card");
+    var count=cards.length;
+    if(count===0){alert("没有废弃文档");return;}
+    if(!confirm(`确定要永久删除全部 ${count} 篇废弃文档吗？\n此操作不可恢复！`))return;
+    var btn=document.getElementById("emptyAllBtn");
+    btn.disabled=true;
+    btn.textContent="删除中...";
+    var fail=0;
+    for(var i=0;i<count;i++){
+        var uid=cards[i].getAttribute("data-uid");
+        try{
+            var r=await fetch(API_BASE+'/docs/'+uid,{method:"DELETE"});
+            var d=await r.json();
+            if(d.ok){
+                cards[i].style.opacity="0.3";
+                cards[i].style.pointerEvents="none";
+            }else{fail++}
+        }catch(e){fail++}
+    }
+    setTimeout(function(){
+        loadTrash();
+        btn.disabled=false;
+        btn.textContent="🗑️ 全部删除";
+        if(fail>0)alert("完成，"+fail+" 篇删除失败");
+    },300);
+}
+
+// 页面加载时读取
+window.addEventListener('load',loadTrash);
