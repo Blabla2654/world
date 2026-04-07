@@ -283,16 +283,17 @@ def git_push():
         repo = os.path.dirname(os.path.abspath(__file__))
         now = datetime.now().strftime("%Y-%m-%d %H:%M")
         # git add
-        r1 = subprocess.run(["git", "add", "."], cwd=repo, capture_output=True, text=True, timeout=30)
+        env = {**os.environ, "GIT_TERMINAL_PROMPT": "0"}
+        r1 = subprocess.run(["git", "add", "documents/", "trash/", "assets/"], cwd=repo, capture_output=True, text=True, timeout=30, env=env)
         # git commit
         r2 = subprocess.run(
             ["git", "commit", "-m", f"Auto-push: {now}"],
-            cwd=repo, capture_output=True, text=True, timeout=30
+            cwd=repo, capture_output=True, text=True, timeout=30, env=env
         )
         # git push
         r3 = subprocess.run(
             ["git", "push", "origin", "main"],
-            cwd=repo, capture_output=True, text=True, timeout=60
+            cwd=repo, capture_output=True, text=True, timeout=60, env=env
         )
         if r3.returncode == 0:
             return jsonify({"ok": True, "message": f"推送成功 ({now})"})
