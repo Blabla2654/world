@@ -265,7 +265,10 @@ function addNewSecondaryTag(){
 // ── 编辑：备份 ──────────────────────────────────
 function syncEditMemory(){
     editMemory.title=document.getElementById("editTitle").value.trim();
-    editBodyText=document.getElementById("editBodyWrap").innerHTML||"";
+    // 使用textContent获取纯文本，将<br>按textContent规则（换行）转为\n存储
+    // 注意：textContent中<br>转为换行符，位置基准与syncAnnoSelection的marker法一致
+    var rawText=document.getElementById("editBodyWrap").textContent||"";
+    editBodyText=rawText.replace(/\r?\n/g,"\n");
     editMemory.body=editBodyText;
     editMemory.tags=editTagPairs.slice();
     editMemory.annotations=editAnnotationsArr.slice();
@@ -274,7 +277,8 @@ function syncEditMemory(){
 function restoreEditMemory(){
     if(editMemory.title){document.getElementById("editTitle").value=editMemory.title}
     if(editMemory.body){
-        document.getElementById("editBodyWrap").innerHTML=editMemory.body;
+        // editMemory.body 存的是纯文本（\n格式），转回 <br> 再写入
+        document.getElementById("editBodyWrap").innerHTML=editMemory.body.replace(/\n/g,"<br>");
         editBodyText=editMemory.body;
     }
     editTagPairs=editMemory.tags.slice();
@@ -369,12 +373,21 @@ function syncAnnoSelection(){
         cancelAddAnnotation();
         return;
     }
-    // 计算选中文本在纯文本中的位置
-    var pre=document.createRange();
-    pre.selectNodeContents(div);
-    pre.setEnd(range.startContainer,range.startOffset);
-    var preText=pre.toString();
-    pendingSelection={text:text,start:preText.length,end:preText.length+text.length};
+    // 计算选中文本在 div.textContent 中的字符偏移量
+    // 思路: 在range起点插入临时节点，读取其在textContent中的位置后移除
+    var marker=document.createElement("span");
+    marker.style.display="none";
+    marker.textContent="\u0000";
+    var range2=range.cloneRange();
+    range2.collapse(true);
+    range2.insertNode(marker);
+    var fullText=div.textContent||"";
+    var markerOffset=fullText.indexOf("\u0000");
+    marker.parentNode.removeChild(marker);
+    // 恢复原始选区
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    pendingSelection={text:text,start:markerOffset,end:markerOffset+text.length};
     // 按钮显示在选中区域下方
     var selRect=range.getBoundingClientRect();
     var btn=document.getElementById("annoFloatBtn");
