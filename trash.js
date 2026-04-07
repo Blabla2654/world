@@ -47,7 +47,7 @@ async function restoreDoc(uid, title) {
 async function deleteDoc(uid, title) {
     if (!confirm('彻底删除「' + title + '」？此操作不可恢复！')) return;
     try {
-        var res = await fetch(API_BASE + '/docs/' + uid, { method: 'DELETE' });
+        var res = await fetch(API_BASE + '/docs/' + uid, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({permanent: true}) });
         if (!res.ok) throw new Error('删除失败');
         trashList = trashList.filter(function(d) { return d.uid !== uid; });
         renderTrashList();
@@ -60,7 +60,7 @@ async function emptyTrash() {
     var failed = 0;
     for (var i = 0; i < trashList.length; i++) {
         try {
-            var res = await fetch(API_BASE + '/docs/' + trashList[i].uid, { method: 'DELETE' });
+            var res = await fetch(API_BASE + '/docs/' + trashList[i].uid, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({permanent: true}) });
             if (!res.ok) failed++;
         } catch(e) { failed++; }
     }

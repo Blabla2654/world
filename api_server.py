@@ -205,7 +205,7 @@ def save_docs():
 
 @app.route("/api/docs/<uid>", methods=["DELETE"])
 def delete_doc(uid):
-    permanent = request.get_json().get("permanent", False) if request.get_json() else False
+    permanent = request.get_json(silent=True).get("permanent", False) if request.get_json(silent=True) else False
     if permanent:
         # 彻底删除
         with _cache_lock:
