@@ -152,7 +152,12 @@ function renderViewBody(body,annotations){
 }
 
 function renderAnnotatedBody(body,annotations){
-    var plain=escapeHtml(body).replace(/\n/g,"<br>");
+    // 处理 [IMG:src] 图片标记
+    var imgReplacer=function(m,src){
+        return'<img src="'+src+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
+    };
+    var bodyForAnno=body.replace(/\[IMG:([^\]]+)\]/g,imgReplacer);
+    var plain=escapeHtml(bodyForAnno).replace(/\n/g,"<br>");
     if(!annotations||annotations.length===0)return renderBodyWithImages(plain);
     var sorted=annotations.slice().sort(function(a,b){return a.start-b.start});
     var r="",lastEnd=0;
@@ -183,20 +188,17 @@ function showAnnoPopup(annoId,event){
     document.getElementById("annoPopupBody").textContent=a.note;
     var pop=document.getElementById("annoPopup");
     pop.classList.add("open");
-    // 优先用event.target，如果没有则用ID查找
-    var span=event&&event.target?event.target.closest(".doc-anno"):null;
-    if(!span)span=document.querySelector("#viewBody .doc-anno[data-id='"+annoId+"']");
-    var rect=span?span.getBoundingClientRect():null;
+    var rect=event.target.getBoundingClientRect();
     var vw=window.innerWidth,vh=window.innerHeight;
     var pw=pop.offsetWidth||320,ph=pop.offsetHeight||150;
-    var top=rect?(rect.bottom+8):100;
-    var left=rect?(rect.left-30):200;
-    if(top+ph>vh)top=rect?Math.max(0,rect.top-ph-8):100;
+    var top=rect.bottom+8;
+    var left=rect.left-30;
+    if(top+ph>vh)top=rect.top-ph-8;
     if(left+pw>vw)left=vw-pw-10;
     if(left<10)left=10;
     pop.style.top=top+"px";
     pop.style.left=left+"px";
-    if(event)event.stopPropagation();
+    event.stopPropagation();
 }
 
 function closeAnnoPopup(){document.getElementById("annoPopup").classList.remove("open")}
@@ -268,7 +270,11 @@ function addNewSecondaryTag(){
 // ── 编辑：备份 ──────────────────────────────────
 function syncEditMemory(){
     editMemory.title=document.getElementById("editTitle").value.trim();
-    editBodyText=document.getElementById("editBodyWrap").innerHTML||"";
+    // 使用innerText获取视觉文本（含嵌套div产生的换行），转为\n标准格式
+    // 注意：innerText将<br>和div边界都转为\n，与syncAnnoSelection的marker法(textContent)不同
+    // 为保持一致，标注位置计算用textContent基准，存储用innerText基准
+    var rawText=document.getElementById("editBodyWrap").innerText||"";
+    editBodyText=rawText.replace(/\r?\n/g,"\n");
     editMemory.body=editBodyText;
     editMemory.tags=editTagPairs.slice();
     editMemory.annotations=editAnnotationsArr.slice();
@@ -277,7 +283,8 @@ function syncEditMemory(){
 function restoreEditMemory(){
     if(editMemory.title){document.getElementById("editTitle").value=editMemory.title}
     if(editMemory.body){
-        document.getElementById("editBodyWrap").innerHTML=editMemory.body;
+        // editMemory.body 存的是纯文本（\n格式），转回 <br> 再写入
+        document.getElementById("editBodyWrap").innerHTML=editMemory.body.replace(/\n/g,"<br>");
         editBodyText=editMemory.body;
     }
     editTagPairs=editMemory.tags.slice();
@@ -306,9 +313,6 @@ function openNewDoc(){
     renderEditAnnoList();
     cancelAddAnnotation();
     openModal("editModal");
-    requestAnimationFrame(function(){
-        document.getElementById("editBodyWrap").focus();
-    });
     startEditBackup();
 }
 
@@ -324,18 +328,14 @@ function openEditFromView(){
     editAnnotationsArr=(d.annotations||[]).map(function(a){return Object.assign({},a)});
     buildTagOptions();
     renderEditTagSelects();
-    // 直接用body内容（包含img标签），转换换行
-    var editBodyDiv=document.getElementById("editBodyWrap");
-    editBodyDiv.innerHTML=d.body.replace(/\n/g,"<br>");
-    editBodyText=d.body;
+    renderEditBodyWithAnnotations(stripHtml(d.body),editAnnotationsArr);
     renderEditAnnoList();
-    renderEditAnnoList();
-    cancelAddAnnotation();
+    pendingSelection=null;
+    var btn=document.getElementById("annoFloatBtn");
+    if(btn)btn.style.display="none";
+    window.getSelection().removeAllRanges();
     closeModal("viewModal");
     openModal("editModal");
-    requestAnimationFrame(function(){
-        document.getElementById("editBodyWrap").focus();
-    });
     startEditBackup();
 }
 
@@ -343,7 +343,13 @@ function openEditFromView(){
 function renderEditBodyWithAnnotations(body,annotations){
     var div=document.getElementById("editBodyWrap");
     editBodyText=body;
-    if(!annotations||annotations.length===0){div.innerHTML=body;return}
+    // 处理图片标记 [IMG:src] → <img src="src">
+    var displayHtml=body
+        .replace(/\[IMG:([^\]]+)\]/g,function(m,src){
+            return '<img src="'+src+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
+        })
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+    if(!annotations||annotations.length===0){div.innerHTML=displayHtml;return}
     var sorted=annotations.slice().sort(function(a,b){return a.start-b.start});
     var html="",lastEnd=0;
     sorted.forEach(function(a){
@@ -353,39 +359,25 @@ function renderEditBodyWithAnnotations(body,annotations){
         lastEnd=a.end;
     });
     html+=escapeHtml(body.substring(lastEnd));
-    div.innerHTML=html.replace(/\n/g,"<br>");
+    div.innerHTML=html.replace(/\[IMG:([^\]]+)\]/g,function(m,src){
+        return '<img src="'+src+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
+    }).replace(/\n/g,"<br>");
 }
 
 function focusAnnotation(id){
     [].slice.call(document.querySelectorAll(".doc-anno.anno-active")).forEach(function(el){el.classList.remove("anno-active")});
-    var span=document.querySelector("#editBodyWrap .doc-anno[data-id='"+id+"'],#viewBody .doc-anno[data-id='"+id+"']");
+    var span=document.querySelector("#editBodyWrap .doc-anno[data-id="+id+"]");
     if(span){span.classList.add("anno-active");span.scrollIntoView({behavior:"smooth",block:"center"})}
-    // 显示标注弹窗
-    var d=docs.find(function(x){return x.uid===currentViewUid});
-    if(!d||!d.annotations)return;
-    var a=d.annotations.find(function(x){return x.id===id});
-    if(!a)return;
-    document.getElementById("annoPopupTitle").textContent="📌 "+a.text;
-    document.getElementById("annoPopupBody").textContent=a.note;
-    var pop=document.getElementById("annoPopup");
-    pop.classList.add("open");
-    var rect=span?span.getBoundingClientRect():{bottom:100,left:200};
-    var vw=window.innerWidth,vh=window.innerHeight;
-    var pw=pop.offsetWidth||320,ph=pop.offsetHeight||150;
-    var top=rect.bottom+8;
-    var left=rect.left-30;
-    if(top+ph>vh)top=rect.top-ph-8;
-    if(left+pw>vw)left=vw-pw-10;
-    if(left<10)left=10;
-    pop.style.top=top+"px";
-    pop.style.left=left+"px";
 }
 
 // ── 编辑：标注 ──────────────────────────────────
 function syncAnnoSelection(){
     var sel=window.getSelection();
     if(!sel||sel.rangeCount===0||sel.isCollapsed){
-        cancelAddAnnotation();
+        // 仅清除浮层按钮，不清除 cursor
+        var btn=document.getElementById("annoFloatBtn");
+        if(btn)btn.style.display="none";
+        pendingSelection=null;
         return;
     }
     var range=sel.getRangeAt(0);
@@ -399,12 +391,21 @@ function syncAnnoSelection(){
         cancelAddAnnotation();
         return;
     }
-    // 计算选中文本在纯文本中的位置
-    var pre=document.createRange();
-    pre.selectNodeContents(div);
-    pre.setEnd(range.startContainer,range.startOffset);
-    var preText=pre.toString();
-    pendingSelection={text:text,start:preText.length,end:preText.length+text.length};
+    // 计算选中文本在 div.textContent 中的字符偏移量
+    // 思路: 在range起点插入临时节点，读取其在textContent中的位置后移除
+    var marker=document.createElement("span");
+    marker.style.display="none";
+    marker.textContent="\u0000";
+    var range2=range.cloneRange();
+    range2.collapse(true);
+    range2.insertNode(marker);
+    var fullText=div.textContent||"";
+    var markerOffset=fullText.indexOf("\u0000");
+    marker.parentNode.removeChild(marker);
+    // 恢复原始选区
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    pendingSelection={text:text,start:markerOffset,end:markerOffset+text.length};
     // 按钮显示在选中区域下方
     var selRect=range.getBoundingClientRect();
     var btn=document.getElementById("annoFloatBtn");
@@ -432,7 +433,9 @@ function confirmAddAnnotation(){
 
 function cancelAddAnnotation(){
     pendingSelection=null;
-    document.getElementById("annoFloatBtn").style.display="none";
+    var btn=document.getElementById("annoFloatBtn");
+    if(btn)btn.style.display="none";
+    // 不再清除 window.selection，保留 cursor 位置
 }
 
 function removeEditAnnotation(id){
@@ -529,16 +532,16 @@ async function saveDoc(){
     var mode=document.getElementById("docMode").value;
     var title=document.getElementById("editTitle").value.trim();
     var bodyDiv=document.getElementById("editBodyWrap");
-    // 提取img标签，然后获取纯文本（去掉HTML标签和标注相关属性）
-    var tempDiv=document.createElement("div");
-    tempDiv.innerHTML=bodyDiv.innerHTML;
-    // 提取所有img标签的完整HTML
-    var imgs=[];
-    tempDiv.querySelectorAll("img").forEach(function(img,i){imgs.push(img.outerHTML);img.replaceWith("\x00IMG"+i+"\x00")});
-    // 转换br为换行，去除所有其他HTML标签
-    var body=tempDiv.textContent.replace(/<br\s*\/?>/gi,"\n").trim();
-    // 还原img标签
-    imgs.forEach(function(img,i){body=body.replace("\x00IMG"+i+"\x00",img)});
+    // 使用innerText获取视觉文本（含正确换行），避免嵌套div导致的innerHTML顺序错乱
+    // 图片：读取innerHTML中的<img>标签，追加[IMG:src]标记
+    var imgs=bodyDiv.querySelectorAll("img");
+    var imgMap=[];
+    imgs.forEach(function(img){imgMap.push(img.getAttribute("src")||"")});
+    var body=(bodyDiv.innerText||"").replace(/\r?\n/g,"\n").replace(/\n{3,}/g,"\n\n");
+    imgMap.forEach(function(src){
+        if(src)body+="\n[IMG:"+src+"]";
+    });
+    body=body.replace(/\n+$/,"");
     if(!title){alert("请输入标题");return}
     stopEditBackup();
     // 重新计算标注位置
@@ -610,7 +613,10 @@ document.addEventListener("click",function(e){
 
 document.addEventListener("scroll",function(){
     if(document.getElementById("editModal").classList.contains("open")){
-        cancelAddAnnotation();
+        // 仅隐藏浮层，不清除 cursor
+        var btn=document.getElementById("annoFloatBtn");
+        if(btn)btn.style.display="none";
+        pendingSelection=null;
     }
 },{passive:true});
 
