@@ -1,29 +1,30 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>废弃文档 · 雾境纪元</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>废弃文档 - 世界观档案</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
-<div class="header-inner">
-<div class="logo">📜 废弃文档</div>
-<div style="display:flex;gap:10px">
-<button class="btn btn-ghost" onclick="location.href='index.html'">← 返回主页</button>
-</div>
-</div>
-</header>
-<div class="container">
-<div class="stats" id="stats"></div>
-<div class="doc-grid" id="docGrid"></div>
-<div class="empty" id="emptyState" style="display:none">
-<div class="empty-icon">🗑️</div>
-<div>废弃区为空</div>
-</div>
-</div>
-
-<script src="trash.js"></script>
+    <header>
+        <div class="container">
+            <h1>🗑️ 废弃文档</h1>
+            <div class="header-actions">
+                <button class="btn" onclick="location.href='./'">← 返回档案</button>
+            </div>
+        </div>
+    </header>
+    <main class="container">
+        <div class="trash-toolbar">
+            <span id="trashCount">废弃文档：0 篇</span>
+            <button class="btn danger" id="emptyAllBtn" onclick="emptyTrash()">🗑️ 全部删除</button>
+        </div>
+        <div id="trashList">
+            <p class="loading-tip">加载中...</p>
+        </div>
+    </main>
+    <script src="api_server.py? raw"></script>
+    <script src="trash.js"></script>
 </body>
 </html>
