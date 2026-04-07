@@ -152,14 +152,15 @@ function renderViewBody(body,annotations){
 }
 
 function renderAnnotatedBody(body,annotations){
-    // 正确顺序：先提取 [IMG:] 标记，再 HTML 转义，最后还原 <img>
-    var _imgSrcs=[];var _imgIdx=0;
-    var _body2=body.replace(/\[IMG:([^\]]+)\]\/g,function(m,src){_imgSrcs.push(src);return '\x1bIMG\x1b'+(_imgSrcs.length-1)+'\x1b';});
-    var plain=escapeHtml(_body2).replace(/\n/g,"<br>");
+    // 先提取 [IMG:] 标记，用占位符保护，再 HTML 转义，最后还原 <img>
+    var _imgSrcs=[];
+    var _bodyForImg=body.replace(/\[IMG:([^\]]+)\]/g,function(m,src){_imgSrcs.push(src);return '\x1bIMG\x1b'+(_imgSrcs.length-1)+'\x1b';});
+    var plain=escapeHtml(_bodyForImg).replace(/\n/g,"<br>");
     plain=plain.replace(/\x1bIMG\x1b(\d+)\x1b/g,function(m,idx){
-        return '<img src="'+_imgSrcs[parseInt(idx)]+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
+        var src=_imgSrcs[parseInt(idx)];
+        return'<img src="'+src+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
     });
-    if(!annotations||annotations.length===0)return renderBodyWithImages(plain);
+    if(!annotations||annotations.length===0)return plain;
     var sorted=annotations.slice().sort(function(a,b){return a.start-b.start});
     var r="",lastEnd=0;
     sorted.forEach(function(a){
@@ -168,7 +169,7 @@ function renderAnnotatedBody(body,annotations){
         r+="<span class=doc-anno data-id="+a.id+" onclick=\"showAnnoPopup('"+a.id+"',event)\">"+escapeHtml(body.substring(a.start,a.end))+"</span>";
         lastEnd=a.end;
     });
-    return renderBodyWithImages(r+plain.substring(lastEnd));
+    return r+plain.substring(lastEnd);
 }
 
 function renderBodyWithImages(html){
@@ -285,8 +286,7 @@ function restoreEditMemory(){
     if(editMemory.title){document.getElementById("editTitle").value=editMemory.title}
     if(editMemory.body){
         // editMemory.body 存的是纯文本（\n格式），转回 <br> 再写入
-        var body2=editMemory.body.replace(/&lt;IMG:([^&]+)&gt;/g,function(m,src){return "[IMG:"+src+"]";}).replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/\[IMG:([^\]]+)\]\/g,function(m,src){return '<img src="'+src+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';});
-        document.getElementById("editBodyWrap").innerHTML=body2.replace(/\n/g,"<br>");
+        document.getElementById("editBodyWrap").innerHTML=editMemory.body.replace(/\n/g,"<br>");
         editBodyText=editMemory.body;
     }
     editTagPairs=editMemory.tags.slice();
@@ -345,13 +345,13 @@ function openEditFromView(){
 function renderEditBodyWithAnnotations(body,annotations){
     var div=document.getElementById("editBodyWrap");
     editBodyText=body;
-    // 处理图片标记 [IMG:src] → <img src="src">
-    // 正确顺序：先提取 [IMG:] 标记，再 HTML 转义，最后还原 <img>
+    // 先提取 [IMG:] 标记，用占位符保护，再 HTML 转义，最后还原 <img>
     var _imgSrcs=[];
-    var _bodyForImg=body.replace(/\[IMG:([^\]]+)\]\/g,function(m,src){_imgSrcs.push(src);return '\x1bIMG\x1b'+(_imgSrcs.length-1)+'\x1b';});
-    var plain=_bodyForImg.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
-    var displayHtml=plain.replace(/\x1bIMG\x1b(\d+)\x1b/g,function(m,idx){
-        return '<img src="'+_imgSrcs[parseInt(idx)]+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
+    var _bodyForImg=body.replace(/\[IMG:([^\]]+)\]/g,function(m,src){_imgSrcs.push(src);return '\x1bIMG\x1b'+(_imgSrcs.length-1)+'\x1b';});
+    var escaped=_bodyForImg.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+    var displayHtml=escaped.replace(/\x1bIMG\x1b(\d+)\x1b/g,function(m,idx){
+        var src=_imgSrcs[parseInt(idx)];
+        return'<img src="'+src+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
     });
     if(!annotations||annotations.length===0){div.innerHTML=displayHtml;return}
     var sorted=annotations.slice().sort(function(a,b){return a.start-b.start});
@@ -363,13 +363,10 @@ function renderEditBodyWithAnnotations(body,annotations){
         lastEnd=a.end;
     });
     html+=escapeHtml(body.substring(lastEnd));
-    // 同理：先提取 [IMG:] 再转义最后还原 <img>
-    html=html.replace(/\[IMG:([^\]]+)\]\/g,function(m,src){_imgSrcs.push(src);return '\x1bIMG\x1b'+(_imgSrcs.length-1)+'\x1b';});
-    html=html.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
-    html=html.replace(/\x1bIMG\x1b(\d+)\x1b/g,function(m,idx){
-        return '<img src="'+_imgSrcs[parseInt(idx)]+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
-    });
-    div.innerHTML=html;
+    div.innerHTML=html.replace(/\x1bIMG\x1b(\d+)\x1b/g,function(m,idx){
+        var src=_imgSrcs[parseInt(idx)];
+        return'<img src="'+src+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
+    }).replace(/\n/g,"<br>");
 }
 
 function focusAnnotation(id){
@@ -633,27 +630,3 @@ document.getElementById("newSecondaryParent").addEventListener("change",updateCh
 
 // ── 启动 ─────────────────────────────────────────
 loadTags();
-
-// ── 推送到 Git ───────────────────────────────────
-var _pushing = false;
-async function pushToGit() {
-    if (_pushing) return;
-    _pushing = true;
-    var btn = document.querySelector('button[onclick="pushToGit()"]');
-    var oldText = btn ? btn.textContent : '';
-    if (btn) { btn.textContent = '⬆ 推送中...'; btn.disabled = true; }
-    try {
-        var res = await fetch('/api/git/push', { method: 'POST' });
-        var data = await res.json();
-        if (data.ok) {
-            alert('✅ ' + data.message);
-        } else {
-            alert('❌ 推送失败：' + (data.error || '未知错误'));
-        }
-    } catch(e) {
-        alert('❌ 推送失败：' + e.message);
-    } finally {
-        if (btn) { btn.textContent = oldText; btn.disabled = false; }
-        _pushing = false;
-    }
-}
