@@ -330,7 +330,10 @@ function openEditFromView(){
     renderEditTagSelects();
     renderEditBodyWithAnnotations(stripHtml(d.body),editAnnotationsArr);
     renderEditAnnoList();
-    cancelAddAnnotation();
+    pendingSelection=null;
+    var btn=document.getElementById("annoFloatBtn");
+    if(btn)btn.style.display="none";
+    window.getSelection().removeAllRanges();
     closeModal("viewModal");
     openModal("editModal");
     startEditBackup();
@@ -371,7 +374,10 @@ function focusAnnotation(id){
 function syncAnnoSelection(){
     var sel=window.getSelection();
     if(!sel||sel.rangeCount===0||sel.isCollapsed){
-        cancelAddAnnotation();
+        // 仅清除浮层按钮，不清除 cursor
+        var btn=document.getElementById("annoFloatBtn");
+        if(btn)btn.style.display="none";
+        pendingSelection=null;
         return;
     }
     var range=sel.getRangeAt(0);
@@ -427,8 +433,9 @@ function confirmAddAnnotation(){
 
 function cancelAddAnnotation(){
     pendingSelection=null;
-    document.getElementById("annoFloatBtn").style.display="none";
-    window.getSelection().removeAllRanges();
+    var btn=document.getElementById("annoFloatBtn");
+    if(btn)btn.style.display="none";
+    // 不再清除 window.selection，保留 cursor 位置
 }
 
 function removeEditAnnotation(id){
@@ -606,7 +613,10 @@ document.addEventListener("click",function(e){
 
 document.addEventListener("scroll",function(){
     if(document.getElementById("editModal").classList.contains("open")){
-        cancelAddAnnotation();
+        // 仅隐藏浮层，不清除 cursor
+        var btn=document.getElementById("annoFloatBtn");
+        if(btn)btn.style.display="none";
+        pendingSelection=null;
     }
 },{passive:true});
 
