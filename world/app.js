@@ -152,7 +152,12 @@ function renderViewBody(body,annotations){
 }
 
 function renderAnnotatedBody(body,annotations){
-    var plain=escapeHtml(body).replace(/\n/g,"<br>");
+    // 处理 [IMG:src] 图片标记
+    var imgReplacer=function(m,src){
+        return'<img src="'+src+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
+    };
+    var bodyForAnno=body.replace(/\[IMG:([^\]]+)\]/g,imgReplacer);
+    var plain=escapeHtml(bodyForAnno).replace(/\n/g,"<br>");
     if(!annotations||annotations.length===0)return renderBodyWithImages(plain);
     var sorted=annotations.slice().sort(function(a,b){return a.start-b.start});
     var r="",lastEnd=0;
@@ -265,9 +270,10 @@ function addNewSecondaryTag(){
 // ── 编辑：备份 ──────────────────────────────────
 function syncEditMemory(){
     editMemory.title=document.getElementById("editTitle").value.trim();
-    // 使用textContent获取纯文本，将<br>按textContent规则（换行）转为\n存储
-    // 注意：textContent中<br>转为换行符，位置基准与syncAnnoSelection的marker法一致
-    var rawText=document.getElementById("editBodyWrap").textContent||"";
+    // 使用innerText获取视觉文本（含嵌套div产生的换行），转为\n标准格式
+    // 注意：innerText将<br>和div边界都转为\n，与syncAnnoSelection的marker法(textContent)不同
+    // 为保持一致，标注位置计算用textContent基准，存储用innerText基准
+    var rawText=document.getElementById("editBodyWrap").innerText||"";
     editBodyText=rawText.replace(/\r?\n/g,"\n");
     editMemory.body=editBodyText;
     editMemory.tags=editTagPairs.slice();
@@ -334,8 +340,12 @@ function openEditFromView(){
 function renderEditBodyWithAnnotations(body,annotations){
     var div=document.getElementById("editBodyWrap");
     editBodyText=body;
-    // 将纯文本中的换行符转换为<br>，确保在div中渲染为换行
-    var displayHtml=body.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+    // 处理图片标记 [IMG:src] → <img src="src">
+    var displayHtml=body
+        .replace(/\[IMG:([^\]]+)\]/g,function(m,src){
+            return '<img src="'+src+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
+        })
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
     if(!annotations||annotations.length===0){div.innerHTML=displayHtml;return}
     var sorted=annotations.slice().sort(function(a,b){return a.start-b.start});
     var html="",lastEnd=0;
@@ -346,7 +356,9 @@ function renderEditBodyWithAnnotations(body,annotations){
         lastEnd=a.end;
     });
     html+=escapeHtml(body.substring(lastEnd));
-    div.innerHTML=html.replace(/\n/g,"<br>");
+    div.innerHTML=html.replace(/\[IMG:([^\]]+)\]/g,function(m,src){
+        return '<img src="'+src+'" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0" loading="lazy">';
+    }).replace(/\n/g,"<br>");
 }
 
 function focusAnnotation(id){
@@ -513,18 +525,16 @@ async function saveDoc(){
     var mode=document.getElementById("docMode").value;
     var title=document.getElementById("editTitle").value.trim();
     var bodyDiv=document.getElementById("editBodyWrap");
-    // 获取innerHTML并转换br为换行
-    // 将常见的块级换行结构转为\n：<br>、<div>、<p> 及其闭合标签
-    var body=bodyDiv.innerHTML
-        .replace(/<br\s*\/?>/gi,"\n")
-        .replace(/<\/(?:div|p)\s*>/gi,"\n")
-        .replace(/<(?:div|p)(?:\s[^>]*)?>/gi,"")
-        .replace(/<[^>]*>/g,"")
-        .replace(/&nbsp;/g," ")
-        .replace(/&lt;/g,"<")
-        .replace(/&gt;/g,">")
-        .replace(/&amp;/g,"&")
-        .replace(/\n{3,}/g,"\n\n");
+    // 使用innerText获取视觉文本（含正确换行），避免嵌套div导致的innerHTML顺序错乱
+    // 图片：读取innerHTML中的<img>标签，追加[IMG:src]标记
+    var imgs=bodyDiv.querySelectorAll("img");
+    var imgMap=[];
+    imgs.forEach(function(img){imgMap.push(img.getAttribute("src")||"")});
+    var body=(bodyDiv.innerText||"").replace(/\r?\n/g,"\n").replace(/\n{3,}/g,"\n\n");
+    imgMap.forEach(function(src){
+        if(src)body+="\n[IMG:"+src+"]";
+    });
+    body=body.replace(/\n+$/,"");
     if(!title){alert("请输入标题");return}
     stopEditBackup();
     // 重新计算标注位置
