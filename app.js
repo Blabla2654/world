@@ -628,6 +628,32 @@ document.addEventListener("scroll",function(){
 document.getElementById("editTagParentSelect").addEventListener("change",updateChildOptions);
 document.getElementById("newSecondaryParent").addEventListener("change",updateChildOptions);
 
+
+// ── 从硬盘重新加载文档 ─────────────────────────────
+var _reloading = false;
+async function reloadFromDisk() {
+    if (_reloading) return;
+    _reloading = true;
+    var btn = document.querySelector('button[onclick="reloadFromDisk()"]');
+    var oldText = btn ? btn.textContent : '';
+    if (btn) { btn.textContent = '⏳ 加载中...'; btn.disabled = true; }
+    try {
+        var res = await fetch('/api/reload', { method: 'POST' });
+        var data = await res.json();
+        if (data.ok) {
+            await loadDocs();
+            alert('✅ ' + data.message);
+        } else {
+            alert('❌ 加载失败：' + (data.error || '未知错误'));
+        }
+    } catch(e) {
+        alert('❌ 加载失败：' + e.message);
+    } finally {
+        if (btn) { btn.textContent = oldText; btn.disabled = false; }
+        _reloading = false;
+    }
+}
+
 // ── 推送到 Git ───────────────────────────────────
 var _pushing = false;
 async function pushToGit() {

@@ -304,6 +304,16 @@ def git_push():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+
+@app.route("/api/reload", methods=["POST"])
+def reload_cache():
+    """从硬盘重新加载文档缓存"""
+    try:
+        _init_cache()
+        return jsonify({"ok": True, "message": f"已重新加载 (文档数: {len(_cache['docs'])})"})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 # ── 启动 ──────────────────────────────────────────
 if __name__ == "__main__":
     _init_cache()
