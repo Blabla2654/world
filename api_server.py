@@ -305,12 +305,46 @@ def git_push():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+def _merge_new_tags():
+    """从文档提取所有标签，与缓存对比，追加新增标签到 tags.json"""
+    all_primary = set(_cache["tags"]["primary"])
+    all_children = dict(_cache["tags"]["children"])
+    
+    added = []
+    for doc in _cache["docs"]:
+        for pt, ct in doc.get("tags", []):
+            # 处理一级标签
+            if pt not in all_primary:
+                all_primary.add(pt)
+                all_children[pt] = []
+                added.append(f"一级: {pt}")
+            # 处理二级标签（加入一级分类中，如果该一级已存在但二级不在）
+            if ct and ct not in all_children.get(pt, []):
+                if pt not in all_children:
+                    all_children[pt] = []
+                if ct not in all_children[pt]:
+                    all_children[pt].append(ct)
+                    added.append(f"二级: {pt} › {ct}")
+    
+    if added:
+        _cache["tags"]["primary"] = sorted(list(all_primary))
+        _cache["tags"]["children"] = all_children
+        save_tags_cache(_cache["tags"])
+    
+    return added
+
 @app.route("/api/reload", methods=["POST"])
 def reload_cache():
-    """从硬盘重新加载文档缓存"""
+    """从硬盘重新加载文档缓存，并对比合并新标签"""
     try:
         _init_cache()
-        return jsonify({"ok": True, "message": f"已重新加载 (文档数: {len(_cache['docs'])})"})
+        new_tags = _merge_new_tags()
+        tag_count = len(_cache["tags"]["primary"])
+        doc_count = len(_cache["docs"])
+        msg = f"已重新加载 {doc_count} 篇文档，{tag_count} 个一级标签"
+        if new_tags:
+            msg += f"，新增 {len(new_tags)} 个标签"
+        return jsonify({"ok": True, "message": msg, "added_tags": new_tags})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 

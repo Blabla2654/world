@@ -69,7 +69,7 @@ function renderTagBar(){
     docs.forEach(function(d){d.tags.forEach(function(t){
         pc[t[0]]=(pc[t[0]]||0)+1;
         if(!so[t[0]])so[t[0]]=[];
-        so[t[0]].push(t[1]);
+        if(so[t[0]].indexOf(t[1])<0)so[t[0]].push(t[1]);
     })});
     var h="<span class='tag-primary "+(activePrimary?"":"active")+"' onclick=selectPrimary(null)>全部</span>";
     ALL_PRIMARY_TAGS.filter(function(p){return pc[p]}).forEach(function(p){
@@ -641,8 +641,14 @@ async function reloadFromDisk() {
         var res = await fetch('/api/reload', { method: 'POST' });
         var data = await res.json();
         if (data.ok) {
+            // 刷新标签列表（包含新增标签合并）
+            loadTags();
+            // 同时刷新文档列表
             await loadDocs();
-            alert('✅ ' + data.message);
+            var tagInfo = data.added_tags && data.added_tags.length > 0
+                ? '\n新增标签: ' + data.added_tags.join(', ')
+                : '';
+            alert('✅ ' + data.message + tagInfo);
         } else {
             alert('❌ 加载失败：' + (data.error || '未知错误'));
         }
